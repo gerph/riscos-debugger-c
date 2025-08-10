@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 
+#include "cli-parser.h"
+
 typedef enum disassemble_error_e {
     diserror_none,
     diserror_file_not_found
@@ -67,25 +69,25 @@ disassemble_error_t create_file_accessor(file_accessor_t *file,
  Function:      disassemble_file
  Description:   Disassemble a file and print to the screen.
  Parameters:    filename-> the file to disassemble
-                thumb = 1 if we're disassembling thumb
+                arch-> the architecture to decode
                 start = start address
                 end = end address (or 0xFFFFFFFF for entire file)
  Returns:       error code
  ******************************************************************/
-disassemble_error_t disassemble_file(const char *filename, int thumb,
+disassemble_error_t disassemble_file(const char *filename, parsed_arch_t *arch,
                                      uint32_t start, uint32_t end);
 
 /*************************************************** Gerph *********
  Function:      disassemble_memory
- Description:   Disassemble a memory and print to the screen.
- Parameters:    thumb = 1 if we're disassembling thumb
+ Description:   Disassemble some memory and print to the screen.
+ Parameters:    arch-> the architecture that we're disassembling
                 start = start address
                 end = end address (or 0xFFFFFFFF for entire file)
                 annotator-> function to provide more annotation for the line,
                             or NULL for none
  Returns:       error code
  ******************************************************************/
-disassemble_error_t disassemble_memory(int thumb,
+disassemble_error_t disassemble_memory(parsed_arch_t *arch,
                                        uint32_t start, uint32_t end,
                                        annotator_f annotator);
 

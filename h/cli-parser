@@ -13,14 +13,15 @@
 
 typedef enum arch_e {
     arch_arm32,
-    arch_thumb
+    arch_thumb,
+    arch_arm64
 } arch_t;
 
 typedef struct parsed_arch_s {
     arch_t arch;
-    /* FIXME: Include a disassembly function pointer */
     int inst_width_min;
     int inst_width_max;
+    const char *(*disassemble)(uint8_t *data, int datalen, uint32_t pc); /* Include a disassembly function pointer */
 } parsed_arch_t;
 
 

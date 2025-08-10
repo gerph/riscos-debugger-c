@@ -13,6 +13,7 @@
 
 #include "cli-parser.h"
 #include "introspection.h"
+#include "rodis.h"
 
 /*************************************************** Gerph *********
  Function:      parse_architecture
@@ -38,6 +39,15 @@ const char *parse_architecture(const char *args, parsed_arch_t *parsed_arch)
             parsed_arch->arch = arch_thumb;
             parsed_arch->inst_width_min = 2;
             parsed_arch->inst_width_max = 2;
+            parsed_arch->disassemble = disassemble_memory_thumb;
+            args++;
+            break;
+
+        case '6':
+            parsed_arch->arch = arch_arm64;
+            parsed_arch->inst_width_min = 4;
+            parsed_arch->inst_width_max = 4;
+            parsed_arch->disassemble = disassemble_memory_arm64;
             args++;
             break;
 
@@ -46,6 +56,7 @@ const char *parse_architecture(const char *args, parsed_arch_t *parsed_arch)
             parsed_arch->arch = arch_arm32;
             parsed_arch->inst_width_min = 4;
             parsed_arch->inst_width_max = 4;
+            parsed_arch->disassemble = disassemble_memory_arm32;
             if (first == 'A')
                 args++;
             break;

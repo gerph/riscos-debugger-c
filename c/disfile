@@ -33,10 +33,11 @@ int main(int argc, char *argv[])
     disassemble_error_t err;
     uint32_t start = 0;
     uint32_t end = 0xFFFFFFFF;
+    parsed_arch_t parsed_arch;
 
     if (argc < 2 | argc > 5)
     {
-        printf("Syntax: %s <filename> [T|A] [<address> [[+|-]<address> [[+|-]<address>]\n", argv[0]);
+        printf("Syntax: %s <filename> [6|T|A] [<address> [[+|-]<address> [[+|-]<address>]\n", argv[0]);
         printf("        %s -dump <filename> [B] [<address> [[+|-]<address> [[+|-]<address>]\n", argv[0]);
         exit(1);
     }
@@ -72,7 +73,6 @@ int main(int argc, char *argv[])
 
         {
             /* Parse the parameters into addresses */
-            parsed_arch_t parsed_arch;
             memory_params_t memory_params;
             int success;
             const char *arg_string = cmdline;
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        err = disassemble_file(filename, thumb, start, end);
+        err = disassemble_file(filename, &parsed_arch, start, end);
     }
     if (err == diserror_file_not_found)
         error("File not found");
