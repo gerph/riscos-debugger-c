@@ -131,7 +131,6 @@ _kernel_oserror *Mod_Command(const char *arg_string, int argc, int number,
 _kernel_oserror *Cmd_Memory(const char *arg_string, int argc, int number,
                             void *pw)
 {
-    parsed_arch_t parsed_arch;
     memory_params_t memory_params;
     int data_width = 4;
     int row_width = 16;
@@ -165,6 +164,9 @@ _kernel_oserror *Cmd_MemoryA(const char *arg_string, int argc, int number,
     uint32_t value;
     uint32_t address;
     int interactive;
+
+    /* MemoryA only makes sense when writing instructions for the current architecture */
+    prepare_architecture(arch_default, &parsed_arch);
 
     arg_string = parse_data_width(arg_string, &data_width, data_width);
 
@@ -223,9 +225,10 @@ _kernel_oserror *Cmd_MemoryA(const char *arg_string, int argc, int number,
             int success;
             char line[12];
             printf("%s ", direction == 1 ? "+" : "-");
-            if (data_width == 2 || data_width == 4)
+            if (data_width >= parsed_arch.inst_width_min &&
+                data_width <= parsed_arch.inst_width_max)
             {
-                disassemble_memory(data_width == 2, address, address + data_width, NULL);
+                disassemble_memory(&parsed_arch, address, address + data_width, NULL);
             }
             else
             {
@@ -314,7 +317,7 @@ _kernel_oserror *Cmd_MemoryI(const char *arg_string, int argc, int number,
         return err_CannotParseStarMemoryI;
     }
 
-    err = disassemble_memory((parsed_arch.arch == arch_thumb) ? 1 : 0,
+    err = disassemble_memory(&parsed_arch,
                              memory_params.base_addr,
                              memory_params.end_addr,
 #ifdef __riscos64
@@ -359,7 +362,7 @@ _kernel_oserror *Cmd_DumpI(const char *arg_string, int argc, int number,
     }
 
     err = disassemble_file(filename,
-                           (parsed_arch.arch == arch_thumb) ? 1 : 0,
+                           &parsed_arch,
                            memory_params.base_addr,
                            memory_params.end_addr);
     if (err == diserror_file_not_found)
@@ -575,8 +578,11 @@ _kernel_oserror *SWI_Disassemble(int number, _kernel_swi_regs *r, void *pw)
     uint32_t word = (uint32_t)r->r[0];
     uint32_t addr = (uint32_t)r->r[1];
     const  char *str;
+    parsed_arch_t parsed_arch;
 
-    str = disassemble_word(word, addr, 0);
+    prepare_architecture(arch_default, &parsed_arch);
+
+    str = parsed_arch.disassemble((uint8_t*)&word, parsed_arch.inst_width_max, addr);
 
     r->r[1] = (int)str;
     r->r[2] = strlen(str);
@@ -589,8 +595,11 @@ _kernel_oserror *SWI_DisassembleThumb(int number, _kernel_swi_regs *r,
     uint32_t word = (uint32_t)r->r[0];
     uint32_t addr = (uint32_t)r->r[1];
     const char *str;
+    parsed_arch_t parsed_arch;
 
-    str = disassemble_word(word, addr, 1);
+    prepare_architecture(arch_thumb, &parsed_arch);
+
+    str = parsed_arch.disassemble((uint8_t*)&word, parsed_arch.inst_width_max, addr);
 
     r->r[1] = (int)str;
     r->r[2] = strlen(str);
@@ -661,22 +670,20 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
     uint32_t outputlen = (uint32_t)r->r[5];
     uint32_t flags = (uint32_t)r->r[6]; /* Not currently used */
 
-    if (arch == -1)
+    parsed_arch_t parsed_arch;
+    bool ok;
+    ok = prepare_architecture((arch_t)arch, &parsed_arch);
+    if (!ok)
     {
-#ifdef __riscos64
-        arch = 1;
-#else
-        arch = 0;
-#endif
-        r->r[0] = arch;
+        return err_UnsupportedArch;
     }
 
-    if (arch == 0 || arch == 3)
+    r->r[0] = parsed_arch.arch;
+
     {
         /* AArch32 ARM */
-        uint32_t word;
         const char *str;
-        int wordsize = (arch == 3) ? 2 :4;
+        int wordsize = parsed_arch.inst_width_max; /* FIXME: We don't handle variable length instructions */
         int needed;
 
         if (datalen < wordsize)
@@ -685,12 +692,7 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
             return err_BufferOverflow;
         }
 
-        if (wordsize == 2)
-            word = *(uint16_t*)data;
-        else
-            word = *(uint32_t*)data;
-
-        str = disassemble_word(word, addr, (arch == 3) ? 0 : 1);
+        str = parsed_arch.disassemble(data, datalen, addr);
 
         needed = strlen(str) + 1;
         if (outputlen < needed)
@@ -716,9 +718,5 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
 
         r->r[6] = strlen(str);
         return NULL;
-    }
-    else
-    {
-        return err_UnsupportedArch;
     }
 }

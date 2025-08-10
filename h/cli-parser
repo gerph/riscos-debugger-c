@@ -8,13 +8,18 @@
 #ifndef CLI_PARSER_H
 #define CLI_PARSER_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 
+/* NOTE: Please keep this list the same as the Architecture list in
+* Debugger_DisassembleArch otherwise badness will happen */
 typedef enum arch_e {
-    arch_arm32,
-    arch_thumb,
-    arch_arm64
+    arch_default=-1,
+    arch_arm32=0,
+    arch_arm64=1,
+    arch_x64=1,    /* 'amd64' would be confusing with 'arm64' */
+    arch_thumb=3
 } arch_t;
 
 typedef struct parsed_arch_s {
@@ -46,6 +51,15 @@ typedef struct param_s {
  Returns:       pointer to the next character in the string, or NULL if not parsed
  ******************************************************************/
 const char *parse_value_or_reg(const char *args, param_t *params);
+
+/*************************************************** Gerph *********
+ Function:      prepare_architecture
+ Description:   Create an parsed architecture structure for a given architecture
+ Parameters:    archid = the architecture identifier
+                arch-> the architecture block to fill in
+ Returns:       true if successful; false if invalid
+ ******************************************************************/
+bool prepare_architecture(arch_t archid, parsed_arch_t *arch);
 
 /*************************************************** Gerph *********
  Function:      parse_architecture

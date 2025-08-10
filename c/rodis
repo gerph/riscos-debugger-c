@@ -447,6 +447,7 @@ const char *disassemble_memory_arm64(uint8_t *data, int datalen, uint32_t addres
     return disassemble_armadillo(*(uint32_t*)data, address); /* FIXME: Assumes data is aligned */
 }
 
+
 const char *debugger_disassemble(uint32_t word, uint32_t addr)
 {
     return disassemble_darm(*(uint32_t*)word, addr, 0);
