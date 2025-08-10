@@ -12,6 +12,8 @@
 #include "swis.h"
 
 #include "darm.h"
+#include "armadillo.h"
+
 #include "fpa.h"
 
 static darm_t d;
@@ -25,6 +27,9 @@ static darm_str_t str;
 #else
 #define dprintf if (0) printf
 #endif
+
+/* String to use when not recognised */
+#define UNDEFINED_INSTRUCTION "Undefined instruction"
 
 typedef enum immtype_e {
     it_positive,
@@ -353,7 +358,7 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
     }
     else
     {
-        sprintf(buffer, "Undefined instruction");
+        sprintf(buffer, UNDEFINED_INSTRUCTION);
     }
 
     dprintf("Returning with %s\n", buffer);
@@ -371,7 +376,24 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
  ******************************************************************/
 const char *disassemble_armadillo(uint32_t word, uint32_t address)
 {
+#ifdef DISABLE_ARMADILLO
     return "Crunchy on the outside, smooth on the inside";
+#else
+    static char buffer[256];
+    struct ad_insn *ad = NULL;
+    bool failed = ArmadilloDisassemble(word, address, &ad);
+    if (failed)
+    {
+        strcpy(buffer, UNDEFINED_INSTRUCTION);
+    }
+    else
+    {
+        /* Successfully disassembled */
+        strcpy(buffer, ad->decoded);
+    }
+    ArmadilloDone(&ad);
+    return buffer;
+#endif
 }
 
 
@@ -422,7 +444,7 @@ const char *disassemble_memory_arm64(uint8_t *data, int datalen, uint32_t addres
     if (datalen != 4)
         return "Invalid length";
 
-    return disassemble_armadillo(*(uint16_t*)data, address); /* FIXME: Assumes data is aligned */
+    return disassemble_armadillo(*(uint32_t*)data, address); /* FIXME: Assumes data is aligned */
 }
 
 const char *debugger_disassemble(uint32_t word, uint32_t addr)
