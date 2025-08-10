@@ -12,6 +12,8 @@
 #include "swis.h"
 
 #include "darm.h"
+#include "armadillo.h"
+
 #include "fpa.h"
 
 static darm_t d;
@@ -25,6 +27,9 @@ static darm_str_t str;
 #else
 #define dprintf if (0) printf
 #endif
+
+/* String to use when not recognised */
+#define UNDEFINED_INSTRUCTION "Undefined instruction"
 
 typedef enum immtype_e {
     it_positive,
@@ -143,7 +148,15 @@ const char *lookup_swi(uint32_t swinum)
 }
 
 
-const char *disassemble_word(uint32_t word, uint32_t address, int thumb)
+/*************************************************** Gerph *********
+ Function:      disassemble_darm
+ Description:   Disassemble a 16bit/32bit work for ARM/Thumb code
+ Parameters:    word = the value to disassemble
+                address = the address it was at
+                thumb = 1 for Thumb code, 0 for ARM code.
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
 {
     bool ok;
     static char buffer[256];
@@ -345,7 +358,7 @@ const char *disassemble_word(uint32_t word, uint32_t address, int thumb)
     }
     else
     {
-        sprintf(buffer, "Undefined instruction");
+        sprintf(buffer, UNDEFINED_INSTRUCTION);
     }
 
     dprintf("Returning with %s\n", buffer);
@@ -354,8 +367,88 @@ const char *disassemble_word(uint32_t word, uint32_t address, int thumb)
 }
 
 
+/*************************************************** Gerph *********
+ Function:      disassemble_armadillo
+ Description:   Disassemble a 64bit word for AArch64 code
+ Parameters:    word = the value to disassemble
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_armadillo(uint32_t word, uint32_t address)
+{
+#ifdef DISABLE_ARMADILLO
+    return "Crunchy on the outside, smooth on the inside";
+#else
+    static char buffer[256];
+    struct ad_insn *ad = NULL;
+    bool failed = ArmadilloDisassemble(word, address, &ad);
+    if (failed)
+    {
+        strcpy(buffer, UNDEFINED_INSTRUCTION);
+    }
+    else
+    {
+        /* Successfully disassembled */
+        strcpy(buffer, ad->decoded);
+    }
+    ArmadilloDone(&ad);
+    return buffer;
+#endif
+}
+
+
+/*************************************************** Gerph *********
+ Function:      disassemble_memory_arm32
+ Description:   Disassemble a 32bit word for ARM code
+ Parameters:    data-> the value to disassemble
+                datalen = the length to decode
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_memory_arm32(uint8_t *data, int datalen, uint32_t address)
+{
+    if (datalen != 4)
+        return "Invalid length";
+
+    return disassemble_darm(*(uint32_t*)data, address, 0); /* FIXME: Assumes data is aligned */
+}
+
+
+/*************************************************** Gerph *********
+ Function:      disassemble_memory_thumb
+ Description:   Disassemble a 16bit word for Thumb code
+ Parameters:    data-> the value to disassemble
+                datalen = the length to decode
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_memory_thumb(uint8_t *data, int datalen, uint32_t address)
+{
+    if (datalen != 2)
+        return "Invalid length";
+
+    return disassemble_darm(*(uint16_t*)data, address, 1); /* FIXME: Assumes data is aligned */
+}
+
+
+/*************************************************** Gerph *********
+ Function:      disassemble_memory_arm64
+ Description:   Disassemble a 64bit word for AArch64 code
+ Parameters:    data-> the value to disassemble
+                datalen = the length to decode
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_memory_arm64(uint8_t *data, int datalen, uint32_t address)
+{
+    if (datalen != 4)
+        return "Invalid length";
+
+    return disassemble_armadillo(*(uint32_t*)data, address); /* FIXME: Assumes data is aligned */
+}
+
 
 const char *debugger_disassemble(uint32_t word, uint32_t addr)
 {
-    return disassemble_word(word, addr, 0);
+    return disassemble_darm(*(uint32_t*)word, addr, 0);
 }

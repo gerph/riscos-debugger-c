@@ -16,3 +16,15 @@ The testcode directory contains an example binary which gives
 example instructions in different forms. This can be used to check
 the system is working properly.
 
+## Using DisassembleArch tests
+
+The testcode for Debugger_DisassembleArch can be triggered through the `debugger` test tool.
+
+Example commands:
+
+* `debugger a0,2203a0e3,` - disassemble an ARM sequence
+* `debugger a0,2203a0e31234,` - disassemble an overlong ARM sequence
+* `debugger a0,2203,` - disassemble a short ARM sequence (should fail)
+* `debugger a1,a0000010,` - disassemble a AArch64 seqeunce
+* `debugger a99,a0000010,` - disassemble an invalid architecture
+* `debugger a3,1324,` - disassemble thumb

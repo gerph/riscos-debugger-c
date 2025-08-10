@@ -17,9 +17,39 @@
  Returns:       pointer to static string, or NULL if not decodable
  ******************************************************************/
 const char *lookup_swi(uint32_t swinum);
+/*************************************************** Gerph *********
+ Function:      disassemble_memory_arm32
+ Description:   Disassemble a 32bit word for ARM code
+ Parameters:    data-> the value to disassemble
+                datalen = the length to decode
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_memory_arm32(uint8_t *data, int datalen, uint32_t address);
 
-const char *disassemble_word(uint32_t word, uint32_t address, int thumb);
 
+/*************************************************** Gerph *********
+ Function:      disassemble_memory_thumb
+ Description:   Disassemble a 16bit word for Thumb code
+ Parameters:    data-> the value to disassemble
+                datalen = the length to decode
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_memory_thumb(uint8_t *data, int datalen, uint32_t address);
+
+
+/*************************************************** Gerph *********
+ Function:      disassemble_memory_arm64
+ Description:   Disassemble a 64bit word for AArch64 code
+ Parameters:    data-> the value to disassemble
+                datalen = the length to decode
+                address = the address it was at
+ Returns:       pointer to the disassembled string
+ ******************************************************************/
+const char *disassemble_memory_arm64(uint8_t *data, int datalen, uint32_t address);
+
+/* FIXME: is this used? */
 const char *debugger_disassemble(uint32_t word, uint32_t addr);
 
 #endif

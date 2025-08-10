@@ -6,6 +6,7 @@
  ******************************************************************/
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include "swis.h"
 
@@ -13,6 +14,54 @@
 
 #include "cli-parser.h"
 #include "introspection.h"
+#include "rodis.h"
+
+
+/*************************************************** Gerph *********
+ Function:      prepare_architecture
+ Description:   Create an parsed architecture structure for a given architecture
+ Parameters:    archid = the architecture identifier
+                parsed_arch-> the architecture block to fill in
+ Returns:       true if successful; false if invalid
+ ******************************************************************/
+bool prepare_architecture(arch_t archid, parsed_arch_t *parsed_arch)
+{
+    if (archid == arch_default)
+    {
+#ifdef __riscos64
+        archid = arch_arm64;
+#else
+        archid = arch_arm32;
+#endif
+    }
+    switch (archid)
+    {
+        case arch_thumb:
+            parsed_arch->arch = arch_thumb;
+            parsed_arch->inst_width_min = 2;
+            parsed_arch->inst_width_max = 2;
+            parsed_arch->disassemble = disassemble_memory_thumb;
+            break;
+
+        case arch_arm32:
+            parsed_arch->arch = arch_arm32;
+            parsed_arch->inst_width_min = 4;
+            parsed_arch->inst_width_max = 4;
+            parsed_arch->disassemble = disassemble_memory_arm32;
+            break;
+
+        case arch_arm64:
+            parsed_arch->arch = arch_arm64;
+            parsed_arch->inst_width_min = 4;
+            parsed_arch->inst_width_max = 4;
+            parsed_arch->disassemble = disassemble_memory_arm64;
+            break;
+
+        default:
+            return false;
+    }
+    return true;
+}
 
 /*************************************************** Gerph *********
  Function:      parse_architecture
@@ -35,19 +84,22 @@ const char *parse_architecture(const char *args, parsed_arch_t *parsed_arch)
     switch (first)
     {
         case 'T':
-            parsed_arch->arch = arch_thumb;
-            parsed_arch->inst_width_min = 2;
-            parsed_arch->inst_width_max = 2;
+            prepare_architecture(arch_thumb, parsed_arch);
+            args++;
+            break;
+
+        case '6':
+            prepare_architecture(arch_arm64, parsed_arch);
+            args++;
+            break;
+
+        case 'A':
+            prepare_architecture(arch_arm32, parsed_arch);
             args++;
             break;
 
         default:
-        case 'A':
-            parsed_arch->arch = arch_arm32;
-            parsed_arch->inst_width_min = 4;
-            parsed_arch->inst_width_max = 4;
-            if (first == 'A')
-                args++;
+            prepare_architecture(arch_default, parsed_arch);
             break;
     }
 
