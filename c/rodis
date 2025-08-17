@@ -389,7 +389,25 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
     else
     {
         /* Successfully disassembled */
-        strcpy(buffer, ad->decoded);
+        char *in;
+        char *out = buffer;
+
+        /* Capitalise the mnemonic */
+        for (in = ad->decoded; *in && *in != ' '; in++)
+        {
+            *out++ = toupper(*in);
+        }
+
+        if (*in++ == ' ')
+        {
+            /* We need to put some spaces in - spaced to 8 characters */
+            do {
+                *out++ = ' ';
+            } while (out < &buffer[8]);
+
+            /* We're now copying the operands */
+            strcpy(out, in);
+        }
     }
     ArmadilloDone(&ad);
     return buffer;
