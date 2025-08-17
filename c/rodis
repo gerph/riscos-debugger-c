@@ -380,6 +380,7 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
     return "Crunchy on the outside, smooth on the inside";
 #else
     static char buffer[256];
+    static char comment[256] = "";
     struct ad_insn *ad = NULL;
     bool failed = ArmadilloDisassemble(word, address, &ad);
     if (failed)
@@ -407,6 +408,42 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
 
             /* We're now copying the operands */
             strcpy(out, in);
+            out += strlen(in);
+        }
+
+        {
+            char *com = comment;
+            int i;
+            for(i=0; i < ad->num_operands; i++)
+            {
+                struct ad_operand *operand = &ad->operands[i];
+                if (operand->type == AD_OP_IMM)
+                {
+                    if (operand->op_imm.type == AD_IMM_INT ||
+                        operand->op_imm.type == AD_IMM_UINT ||
+                        operand->op_imm.type == AD_IMM_LONG ||
+                        operand->op_imm.type == AD_IMM_ULONG) {
+                        const char *value = decode_immediate(operand->op_imm.bits, it_positive);
+                        if (value != NULL)
+                        {
+                            if (com != comment)
+                                com += sprintf(com, "; ");
+                            com += sprintf(com, "%s", value);
+                        }
+                    }
+                }
+            }
+
+            if (com != comment)
+            {
+                /* There was a comment, so we want to append to our string */
+#define COMMENT_OFFSET (8 + 24)
+
+                do {
+                    *out++ = ' ';
+                } while (out - buffer < COMMENT_OFFSET);
+                out += sprintf(out, "; %s", comment);
+            }
         }
     }
     ArmadilloDone(&ad);
