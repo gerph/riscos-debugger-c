@@ -423,7 +423,61 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
                         operand->op_imm.type == AD_IMM_UINT ||
                         operand->op_imm.type == AD_IMM_LONG ||
                         operand->op_imm.type == AD_IMM_ULONG) {
-                        const char *value = decode_immediate(operand->op_imm.bits, it_positive);
+                        const char *value;
+#ifndef __riscos64
+/* FIXME: This is a horrible hack to allow the conversions to work properly on the Norcroft compiler */
+#define int64_t int32_t
+#define uint64_t uint32_t
+#endif
+                        uint64_t immediate = operand->op_imm.bits;
+                        immtype_t immtype = it_positive;
+                        switch (operand->op_imm.type)
+                        {
+                            case AD_IMM_INT:
+                                {
+                                    int32_t actual = operand->op_imm.bits;
+                                    if (actual < 0)
+                                    {
+                                        immediate = -actual;
+                                        immtype = it_negative;
+                                    }
+                                    else
+                                    {
+                                        immediate = actual;
+                                    }
+                                }
+                                break;
+
+                            case AD_IMM_UINT:
+                                {
+                                    uint32_t actual = operand->op_imm.bits;
+                                    immediate = actual;
+                                }
+                                break;
+
+                            case AD_IMM_LONG:
+                                {
+                                    int64_t actual = operand->op_imm.bits;
+                                    if (actual < 0)
+                                    {
+                                        immediate = -actual;
+                                        immtype = it_negative;
+                                    }
+                                    else
+                                    {
+                                        immediate = actual;
+                                    }
+                                }
+                                break;
+
+                            case AD_IMM_ULONG:
+                                {
+                                    uint64_t actual = operand->op_imm.bits;
+                                    immediate = actual;
+                                }
+                                break;
+                        }
+                        value = decode_immediate(immediate, immtype);
                         if (value != NULL)
                         {
                             if (com != comment)
