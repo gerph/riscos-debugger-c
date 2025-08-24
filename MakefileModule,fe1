@@ -61,6 +61,10 @@ CLIBTYPE   = generic
 
 include CModule
 
+ifeq (${BUILD64},1)
+CFLAGS64   += -O3
+endif
+
 # Additional dependencies
 $(OZDIR).veneer: h.modhead
 $(OZDIR).breakpoints: h.modhead
