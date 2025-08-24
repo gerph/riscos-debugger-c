@@ -58,6 +58,9 @@ jobs:
       - echo *** Exercise *DumpI
       - DumpI hello_world
 
+      - echo *** Exercise *DumpI decoding 64bit code
+      - DumpI hello_world64 6
+
       - echo *** Simple smoketests complete
 
     # Outputs from the build are defined in artifacts
