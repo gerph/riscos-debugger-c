@@ -130,6 +130,24 @@ static const char *decode_immediate(uint32_t imm, immtype_t it)
     return comment;
 }
 
+/*************************************************** Gerph *********
+ Function:      convert_hex_0x_to_ampersand
+ Description:   Convert the 0x<number> sequence to RISC OS style &<number>
+ Parameters:    str-> the string to modify in place
+ Returns:       pointer to the start of the string
+ ******************************************************************/
+static char *convert_hex_0x_to_ampersand(char *str)
+{
+    char *zerox;
+    while ((zerox = strstr(str, "0x")) != NULL)
+    {
+        int offset = zerox - str;
+        str[offset] = '&';
+        strcpy(&str[offset + 1], &str[offset + 2]);
+    }
+    return str;
+}
+
 
 /*************************************************** Gerph *********
  Function:      lookup_swi
@@ -293,17 +311,9 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
         }
 
         /* Tweak the hex notation */
-        {
-            char *zerox = strstr(args, "0x");
-            if (zerox)
-            {
-                int offset = zerox - args;
-                if (args != newargs)
-                    strcpy(newargs, args), args = newargs;
-                newargs[offset] = '&';
-                strcpy(&newargs[offset + 1], &newargs[offset + 2]);
-            }
-        }
+        if (args != newargs)
+            strcpy(newargs, args), args = newargs;
+        convert_hex_0x_to_ampersand(newargs);
 
         /* Ensure mnemonics are in the correct case */
         {
@@ -408,8 +418,10 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
 
             /* We're now copying the operands */
             strcpy(out, in);
-            out += strlen(in);
         }
+
+        convert_hex_0x_to_ampersand(buffer);
+        out = &buffer[strlen(buffer)];
 
         {
             char *com = comment;
