@@ -62,7 +62,7 @@ CLIBTYPE   = generic
 include CModule
 
 ifeq (${BUILD64},1)
-CFLAGS64   += -O3
+CFLAGS64   += -Os
 endif
 
 # Additional dependencies
