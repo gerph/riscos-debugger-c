@@ -1,0 +1,59 @@
+/*******************************************************************
+ * File:        acknowledgements
+ * Purpose:     Provide the license acknowledgements
+ * Author:      Gerph
+ * Date:        24 Aug 2025
+ ******************************************************************/
+
+#include <stdbool.h>
+#include <stdlib.h>
+#include "swis.h"
+
+#include "modhead.h"
+#include "Switcher.h"
+
+
+static const char Acknowledgements_String[] =
+    "Debugger module: Copyright (c) 2025, Gerph\n"
+    "Armadillo library: Copyright (c) 2019, Justin Sherman\n"
+    "DArm library: Copyright (c) 2013, Jurriaan Bremer";
+
+/*************************************************** Gerph *********
+ Function:      acknowledgements_announce
+ Description:   Announce a change of the acknowledgements
+ Parameters:    startup = true if starting, false if shutting down
+ Returns:       none
+ ******************************************************************/
+void acknowledgements_announce(bool startup)
+{
+    /* Let TaskManager know acknowledgements have changed */
+    _swix(OS_ServiceCall,_INR(1,2),Service_TaskManagerAcknowledgements,0);
+}
+
+
+
+/*************************************************** Gerph *********
+ Function:      acknowledgements_service
+ Description:   Handle any services that the acknowledgements system needs to.
+ Parameters:    service_number = the service to handle
+                r-> the registers
+                pw = the private word
+ Returns:       none
+ ******************************************************************/
+void acknowledgements_service(int service_number, _kernel_swi_regs *r, void *pw)
+{
+    switch (service_number)
+    {
+        case Service_TaskManagerAcknowledgements:
+            {
+                taskmanager_addmessages_func func=(taskmanager_addmessages_func)
+                                                   ((void*)r->r[2]);
+                if (func!=NULL)
+                {
+                    func(TaskManager_AckGroup_Tertiary, Module_Title,
+                         (char *)Acknowledgements_String);
+                }
+            }
+            break;
+    }
+}
