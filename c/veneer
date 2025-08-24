@@ -13,6 +13,8 @@
 #include "kernel.h"
 #include "swis.h"
 
+#include "Switcher.h"
+
 #include "modhead.h"
 
 #include "rodis.h"
@@ -70,6 +72,10 @@
 _kernel_oserror *Mod_Init(const char *tail, int podule_base, void *pw)
 {
     dprintf("Module Debugger initialised\n");
+
+    /* Let TaskManager know acknowledgements have changed */
+    _swix(OS_ServiceCall,_INR(1,2),Service_TaskManagerAcknowledgements,0);
+
     return NULL;
 }
 
@@ -89,8 +95,40 @@ _kernel_oserror *Mod_Init(const char *tail, int podule_base, void *pw)
 _kernel_oserror *Mod_Final(int fatal, int podule_base, void *pw)
 {
     dprintf("Module Debugger dying\n");
+
+    /* Let TaskManager know acknowledgements have changed */
+    _swix(OS_ServiceCall,_INR(1,2),Service_TaskManagerAcknowledgements,0);
+
     breakpoint_final();
     return NULL;
+}
+
+/*************************************************** Gerph *********
+ Function:     Mod_Service
+ Description:  Service handler routine
+ Parameters:   service_number = the number
+               r-> registers on entry
+               pw = private word
+ Returns:      none
+ ******************************************************************/
+void Mod_Service(int service_number, _kernel_swi_regs *r, void *pw)
+{
+  switch (service_number)
+  {
+    case Service_TaskManagerAcknowledgements:
+      {
+        taskmanager_addmessages_func func=(taskmanager_addmessages_func)
+                                           ((void*)r->r[2]);
+        if (func!=NULL)
+        {
+          func(TaskManager_AckGroup_Tertiary, Module_Title,
+               "Debugger module: Copyright (c) 2025, Gerph\n"
+               "Armadillo library: Copyright (c) 2019, Justin Sherman\n"
+               "DArm library: Copyright (c) 2013, Jurriaan Bremer");
+        }
+      }
+      break;
+  }
 }
 
 

@@ -4,6 +4,9 @@
 
 #include "VersionNum"
 
+#include "Switcher.h"
+
+
 ; If you declare module-is-runnable the module will be entered at the main()
 ; function in user mode (ie like a normal C program).
 ; You will probably never need this field.
@@ -280,5 +283,5 @@ command-keyword-table: Mod_Command
 ; The module service entry will be called to process services. You are
 ; strongly recommended to include the numbers of the services you wish to
 ; handle.
-;service-call-handler: Mod_Service 1 2 3 4 5 6
+service-call-handler:   Mod_Service Service_TaskManagerAcknowledgements
 
