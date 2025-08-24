@@ -1,0 +1,6 @@
+Debugger_DisassembleArch 0
+Input: &22 &03
+Input size: 2
+Get output buffer size...
+Insufficient input data, need 4 bytes
+Error was: [&007fffff] Input data is too short for Debugger_DisassembleArch (need 4 bytes, given 2)

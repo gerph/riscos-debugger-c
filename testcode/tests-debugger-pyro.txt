@@ -1,0 +1,290 @@
+#
+# SUT:    Extension Modules: Debugger
+# Area:   Commands
+# Class:  Functional
+# Type:   Integration test
+#
+
+
+Group: Debugger: *ShowRegs
+
+Test: *Showregs with no exception
+Command: $TOOL --load-internal-modules --command "showregs"
+Expect: expect/pymodules/debugger/showregs_none
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+
+Test: *Showregs after branch through zero
+Command: $TOOL --load-internal-modules --command "Load bin.exception_btz 8000" --command "gos"
+Expect: expect/pymodules/debugger/showregs_btz
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after read data abort
+Command: $TOOL --load-internal-modules --command "Load bin.exception_read 8000" --command "gos"
+Expect: expect/pymodules/debugger/showregs_read
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after write data abort
+Command: $TOOL --load-internal-modules --command "Load bin.exception_write 8000" --command "gos"
+Expect: expect/pymodules/debugger/showregs_write
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after instruction fetch abort
+Command: $TOOL --load-internal-modules --command "Load bin.exception_execute 8000" --command "gos"
+Expect: expect/pymodules/debugger/showregs_execute
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after breakpoint abort
+Command: $TOOL --load-internal-modules --command "Load bin.exception_breakpoint 8000" --command "gos"
+Expect: expect/pymodules/debugger/showregs_breakpoint
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after write data abort (exception region disabled)
+Command: $TOOL --load-internal-modules --command "Load bin.exception_write 8000" --command "gos" --config debugger.showregs_exception_dump_region=no
+Expect: expect/pymodules/debugger/showregs_write_no_edr
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after instruction fetch abort
+Command: $TOOL --load-internal-modules --command "Load bin.exception_execute 8000" --command "gos" --config debugger.showregs_exception_dump_region=no
+Expect: expect/pymodules/debugger/showregs_execute_no_edr
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+Test: *Showregs after breakpoint abort
+Command: $TOOL --load-internal-modules --command "Load bin.exception_breakpoint 8000" --command "gos" --config debugger.showregs_exception_dump_region=no
+Expect: expect/pymodules/debugger/showregs_breakpoint_no_edr
+Replace: expect/pymodules/debugger/showregs_modulespace_replacements
+InputLine: go 8000\nshowregs\nquit\n
+Disable: No binary yet
+
+
+Group: Debugger: Finalisation
+Disable: No binary yet
+
+Test: Branch through zero after Debugger killed
+Command: $TOOL --load-internal-modules --command "Load bin.exception_btz 8000" --command "RMKill Debugger" --command "gos"
+Expect: expect/pymodules/debugger/finalise_btz
+Replace: expect/address_any_replacements
+InputLine: go 8000\nquit\n
+
+Test: Read abort after Debugger killed
+Command: $TOOL --load-internal-modules --command "Load bin.exception_read 8000" --command "RMKill Debugger" --command "gos"
+Expect: expect/pymodules/debugger/finalise_read
+Replace: expect/address_any_replacements
+InputLine: go 8000\nquit\n
+
+
+Group: Debugger: *Memory
+
+Test: *Memory
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory 8000"
+Expect: expect/pymodules/debugger/star_memory
+
+Test: *Memory size
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory 8000+20"
+Expect: expect/pymodules/debugger/star_memory_size
+
+Test: *Memory size unaligned
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory 8000+13"
+Expect: expect/pymodules/debugger/star_memory_size_unaligned
+
+Test: *Memory base unaligned and size unaligned
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory 8005+13"
+Expect: expect/pymodules/debugger/star_memory_unaligned_size_unaligned
+
+Test: *Memory offset plus size
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory 8000+5+13"
+Expect: expect/pymodules/debugger/star_memory_unaligned_size_unaligned
+
+Test: *Memory negative_offset plus size
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory 8020-5+13"
+Expect: expect/pymodules/debugger/star_memory_negative_offset
+
+Test: *Memory (show top bit)
+Command: $TOOL --load-internal-modules --config debugger.hide_topbitset=false --command "Load testdata.fstest.random 8000" --command "Memory 8000"
+Expect: expect/pymodules/debugger/star_memory_topbitset
+
+Test: *Memory B
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8000"
+Expect: expect/pymodules/debugger/star_memory_b
+
+Test: *Memory B size
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8000+20"
+Expect: expect/pymodules/debugger/star_memory_b_size
+
+Test: *Memory B size unaligned
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8000+13"
+Expect: expect/pymodules/debugger/star_memory_b_size_unaligned
+
+Test: *Memory B base unaligned and size unaligned
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8005+13"
+Expect: expect/pymodules/debugger/star_memory_b_unaligned_size_unaligned
+
+Test: *Memory B offset plus size
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8000+5+13"
+Expect: expect/pymodules/debugger/star_memory_b_unaligned_size_unaligned
+
+Test: *Memory B negative offset plus size
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8020-5+13"
+Expect: expect/pymodules/debugger/star_memory_b_negative_offset
+
+Test: *Memory register relative
+Command: $TOOL --load-internal-modules --command "Load bin.exception_write 8000" --command "gos"
+Expect: expect/pymodules/debugger/star_memory_pc-10_after_abort
+InputLine: go 8000\nmemory pc-10+20\nquit\n
+Disable: No input support
+
+Test: *Memory excess parameters
+Command: $TOOL --load-internal-modules --command "Memory 8000+20+40 0"
+Expect: expect/pymodules/debugger/star_memory_excess
+RC: 1
+
+
+Group: Debugger: *MemoryA
+
+Test: *MemoryA base
+Command: $TOOL --load-internal-modules --command "Memory 8000 +8" --command "MemoryA 8000" --command "Memory 8000 +8"
+InputLine: 755
+Expect: expect/pymodules/debugger/star_memorya
+Disable: No input support
+
+Test: *MemoryA base+value
+Command: $TOOL --load-internal-modules --command "Memory 8000 +8" --command "MemoryA 8000 755" --command "Memory 8000 +8"
+Expect: expect/pymodules/debugger/star_memorya_value
+
+Test: *MemoryA base+value (alpha)
+Command: $TOOL --load-internal-modules --command "Memory 8000 +8" --command "MemoryA 8000 e3a01e65" --command "Memory 8000 +8"
+Expect: expect/pymodules/debugger/star_memorya_value_alpha
+
+Test: *MemoryA B base
+Command: $TOOL --load-internal-modules --command "Memory 8000 +8" --command "MemoryA B 8000" --command "Memory 8000 +8"
+InputLine: 755
+Expect: expect/pymodules/debugger/star_memorya_b
+Disable: No input support
+
+Test: *MemoryA B base+value
+Command: $TOOL --load-internal-modules --command "Memory 8000 +8" --command "MemoryA B 8000 755" --command "Memory 8000 +8"
+Expect: expect/pymodules/debugger/star_memorya_b_value
+
+Test: *MemoryA excess parameters
+Command: $TOOL --load-internal-modules --command "MemoryA 8000 20 foo"
+Expect: expect/pymodules/debugger/star_memorya_excess
+RC: 1
+
+
+Group: Debugger: *MemoryI
+
+Test: *MemoryI UtilityModule address
+Command: $TOOL --load-internal-modules --command "MemoryI 3800404+54"
+Expect: expect/pymodules/debugger/star_memoryi_utilitymodule
+
+Test: *MemoryI UtilityModule address (explicitly ARM)
+Command: $TOOL --load-internal-modules --command "MemoryI A 3800404+54"
+Expect: expect/pymodules/debugger/star_memoryi_utilitymodule_explicit_arm
+
+Test: *MemoryI UtilityModule address (unaligned)
+Command: $TOOL --load-internal-modules --command "MemoryI A 3800405+11"
+Expect: expect/pymodules/debugger/star_memoryi_utilitymodule_unaligned
+
+Test: *MemoryI UtilityModule address (coloured)
+Command: $TOOL --load-internal-modules --config vdu.implementation=ansitext --config vdu.mode=28 --set-variable "Debugger$Options=C" --command "MemoryI 3800404+54"
+Expect: expect/pymodules/debugger/star_memoryi_utilitymodule_coloured
+Replace: expect/ansi_replacements
+
+Test: *MemoryI register relative
+Command: $TOOL --load-internal-modules --command "Load bin.exception_write 8000" --command "gos"
+Expect: expect/pymodules/debugger/star_memoryi_pc-10_after_abort
+InputLine: go 8000\nmemoryi pc-10+20\nquit\n
+
+Test: *MemoryI excess parameters
+Command: $TOOL --load-internal-modules --command "Memory 8000+20+10 foo"
+Expect: expect/pymodules/debugger/star_memoryi_excess
+RC: 1
+
+Test: *MemoryI (no Capstone)
+Command: $TOOL --load-internal-modules --preload preloads/disable_capstone.py --command "MemoryI 3800404+54"
+Expect: expect/pymodules/debugger/star_memoryi_nocapstone
+
+Test: *MemoryI (DisassembleFlags)
+Command: $TOOL --load-internal-modules --command "DisassembleFlags -APCS Y -lower N" --command "MemoryI 3800404+54"
+Expect: expect/pymodules/debugger/star_memoryi_disassembleflags
+
+
+Group: Debugger: *MemoryI (Thumb)
+
+Test: *MemoryI T
+Command: $TOOL --load-internal-modules --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
+Expect: expect/pymodules/debugger/star_memoryi_thumbcode
+
+Test: *MemoryI T (coloured)
+Command: $TOOL --load-internal-modules --config vdu.implementation=ansitext --config vdu.mode=28 --set-variable "Debugger$Options=C" --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
+Expect: expect/pymodules/debugger/star_memoryi_thumbcode_coloured
+Replace: expect/ansi_replacements
+
+Test: *MemoryI T (no Capstone)
+Command: $TOOL --load-internal-modules --preload preloads/disable_capstone.py --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
+Expect: expect/pymodules/debugger/star_memoryi_thumbcode_nocapstone
+
+
+Group: Debugger: *DumpI
+
+Test: *DumpI hello_world
+Command: $TOOL --load-internal-modules --command "DumpI bin.hello_world"
+Expect: expect/pymodules/debugger/star_dumpi
+
+
+Group: Debugger: *InitStore
+
+Test: *InitStore
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "initstore" --command "Memory 8000"
+Expect: expect/pymodules/debugger/star_initstore
+
+Test: *InitStore value
+Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "initstore 12345678" --command "Memory 8000"
+Expect: expect/pymodules/debugger/star_initstore_12345678
+
+
+Group: Debugger: *Vector
+Disable: No *Vector in this debugger
+
+Test: *Vector
+Command: $TOOL --load-internal-modules --command "*Vector"
+Expect: expect/pymodules/debugger/star_vector
+Replace: expect/pymodules/debugger/star_vector_replacements
+
+Test: *Vector 3
+Command: $TOOL --load-internal-modules --command "*Vector 3"
+Expect: expect/pymodules/debugger/star_vector_3
+Replace: expect/pymodules/debugger/star_vector_replacements
+
+Test: *Vector 3x
+Command: $TOOL --load-internal-modules --command "*Vector 3x"
+Expect: expect/pymodules/debugger/star_vector_3x
+Replace: expect/pymodules/debugger/star_vector_replacements
+RC: 1
+
+Test: *Vector out-of-range
+Command: $TOOL --load-internal-modules --command "*Vector 2000"
+Expect: expect/pymodules/debugger/star_vector_outofrange
+Replace: expect/pymodules/debugger/star_vector_replacements
+
+Test: *Vector WrchV
+Command: $TOOL --load-internal-modules --command "*Vector WrchV"
+Expect: expect/pymodules/debugger/star_vector_wrchv
+Replace: expect/pymodules/debugger/star_vector_replacements
+
+Test: *Vector Invalid
+Command: $TOOL --load-internal-modules --command "*Vector Invalid"
+Expect: expect/pymodules/debugger/star_vector_invalid
+RC: 1

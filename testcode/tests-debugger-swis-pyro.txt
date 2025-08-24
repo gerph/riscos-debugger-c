@@ -1,0 +1,93 @@
+#
+# SUT:    Extension Modules: Debugger
+# Area:   SWIs
+# Class:  Functional
+# Type:   Integration test
+#
+
+Group: Debugger: SWI Disassemble
+
+Test: Debugger_Disassemble
+Command: $TOOL --load-internal-modules bin/debugger d
+Expect: expect/pymodules/debugger/swi_disassemble
+
+Test: Debugger_Disassemble (FPA)
+Command: $TOOL --load-internal-modules bin/debugger f
+Expect: expect/pymodules/debugger/swi_disassemble_fpa
+
+Test: Debugger_DisassembleThumb
+Command: $TOOL --load-internal-modules bin/debugger t
+Expect: expect/pymodules/debugger/swi_disassemblethumb
+
+Test: Debugger_Flags
+Command: $TOOL --load-internal-modules bin/debugger pf0,0,
+Expect: expect/pymodules/debugger/swi_flags
+Disable: DebuggerPlus not supported
+
+
+Test: Debugger_DisassemblePlus (flags: APCS+Upper)
+Command: $TOOL --load-internal-modules bin/debugger pd2,
+Expect: expect/pymodules/debugger/swi_disassembleplus
+Disable: DebuggerPlus not supported
+
+Test: Debugger_Disassemble (no Capstone)
+Command: $TOOL --load-internal-modules --preload preloads/disable_capstone.py bin/debugger d
+Expect: expect/pymodules/debugger/swi_disassemble_nocapstone
+RC: 1
+Disable: Not relevant outside Pyromaniac
+
+Test: Debugger_DisassembleArch (ARM)
+Command: $TOOL --load-internal-modules bin/debugger a0,2203a0e3,
+Expect: expect/pymodules/debugger/swi_disassemblearch_arm
+
+Test: Debugger_DisassembleArch (ARM+extra)
+Command: $TOOL --load-internal-modules bin/debugger a0,2203a0e31234,
+Expect: expect/pymodules/debugger/swi_disassemblearch_arm_extra
+
+Test: Debugger_DisassembleArch (ARM+too few)
+Command: $TOOL --load-internal-modules bin/debugger a0,2203,
+Expect: expect/pymodules/debugger/swi_disassemblearch_arm_toofew
+
+Test: Debugger_DisassembleArch (ARM64)
+Command: $TOOL --load-internal-modules bin/debugger a1,a0000010,
+Expect: expect/pymodules/debugger/swi_disassemblearch_arm64
+
+Test: Debugger_DisassembleArch (invalid)
+Command: $TOOL --load-internal-modules bin/debugger a99,a0000010,
+Expect: expect/pymodules/debugger/swi_disassemblearch_invalid
+
+Test: Debugger_DisassembleArch (Thumb)
+Command: $TOOL --load-internal-modules bin/debugger a3,1324,
+Expect: expect/pymodules/debugger/swi_disassemblearch_thumb
+
+Group: Debugger: SWI Disassemble (flags)
+Disable: DebuggerPlus not supported
+
+Test: Debugger_Disassemble (APCS)
+Command: $TOOL --load-internal-modules bin/debugger pf2,2,d
+Expect: expect/pymodules/debugger/swi_disassemble_apcs
+
+Test: Debugger_Disassemble (!Lower)
+Command: $TOOL --load-internal-modules bin/debugger pf20000,0,df
+Expect: expect/pymodules/debugger/swi_disassemble_upper
+
+Test: Debugger_Disassemble (UseNOP)
+Command: $TOOL --load-internal-modules bin/debugger pf1000,1000,d
+Expect: expect/pymodules/debugger/swi_disassemble_usenop
+
+Test: Debugger_Disassemble (QuoteSWIs)
+Command: $TOOL --load-internal-modules bin/debugger pf10,10,d
+Expect: expect/pymodules/debugger/swi_disassemble_quoteswis
+
+Test: Debugger_Disassemble (UseDCD)
+Command: $TOOL --load-internal-modules bin/debugger pf20,20,d
+Expect: expect/pymodules/debugger/swi_disassemble_usedcd
+
+Test: Debugger_Disassemble (ANDEQasDCD)
+Command: $TOOL --load-internal-modules bin/debugger pf80,80,d
+Expect: expect/pymodules/debugger/swi_disassemble_andeqasdcd
+
+Test: Debugger_Disassemble (UseVDU)
+Command: $TOOL --load-internal-modules bin/debugger pf40,40,d
+Expect: expect/pymodules/debugger/swi_disassemble_usevdu
+

@@ -1,0 +1,50 @@
+Test: Special
+    BKPT    #3
+    SWI     OS_WriteS
+    YIELD
+    UDF     #&2a
+
+Test: Branches
+    BLE     &00008008
+    B       &00008002
+    BLX     r7
+    CBZ     r2, #&8010
+    CBNZ    r3, #&8072
+
+Test: Load/Store
+    LDR     r1, [sp, #&b0]
+    LDR     r2, &00008014
+    LDRH    r3, [r6, #6]
+    STR     r3, [r6, r1]
+
+Test: Arithmetic
+    EORS    r4, r7
+    ORRS    r7, r3
+    ADDS    r7, #&2a                  ; #42  = '*'
+    SUBS    r5, r1, r3
+    SUBS    r4, r6, #3
+    ADD     r5, sp, #&60              ; #96  = '`'
+    ADD     r11, r3
+    RSBS    r3, r2, #0
+
+Test: Binary ops
+    MOV     r6, lr
+    MOVS    r4, #&13                  ; #19
+    MOVS    r4, #&2a                  ; #42  = '*'
+    UXTH    r2, r6
+
+Test: Arithmetic pc-relative
+    ADR     r1, &00008044
+
+Test: Load/Store multiple
+    STMIA   r1!, {r2, r5}
+    PUSH    {r0, r1, r2, r3, r4, r5, r6, r7}
+    PUSH    {r0, r1, r2, r3, r4, r5, r6, r7, lr}
+    POP     {r0, r1, r2, r3, r4, r5, r6, r7}
+    POP     {r0, r1, r2, r3, r4, r5, r6, r7, pc}
+
+Test: Comparisons
+    CMP     r2, r4
+    CMP     r5, r8
+    ITE     lo
+

@@ -1,0 +1,36 @@
+Supervisor
+
+*go 8000
+Exception: Prefetch abort
+  r0  = &0700MMMM, r1  = &00000000, r2  = &00000000, r3  = &00000000
+  r4  = &00000000, r5  = &00000000, r6  = &00000000, r7  = &00000000
+  r8  = &00000000, r9  = &00000000, r10 = &00000000, r11 = &00000000
+  r12 = &00000000, sp  = &00000000, lr  = &04107fe0, pc  = &00008004
+  CPSR= &00000010 : USR-32 ARM fi ae qvczn
+
+Error: Internal error: Abort on instruction fetch (breakpoint) at &00008004 (DA 'Application Space') (Error number &80000001)
+*showregs
+Exception dump information for ARM (stored at &0700MMMM):
+
+r0  = &0700MMMM, r1  = &00000000, r2  = &00000000, r3  = &00000000
+r4  = &00000000, r5  = &00000000, r6  = &00000000, r7  = &00000000
+r8  = &00000000, r9  = &00000000, r10 = &00000000, r11 = &00000000
+r12 = &00000000, sp  = &00000000, lr  = &04107fe0, pc  = &00008004
+CPSR= &00000010 : USR-32 ARM fi ae qvczn
+
+Locations:
+  lr:  DA 'SVC Stack'  (area offset &7fe0)
+  pc:  DA 'Application Space'  (area offset &4)
+
+Disassembly before pc (from time of exception):
+  &00008000 : &e1a00000 : MOV     r0, r0
+  &00008004 > &e1200071 > BKPT    #1
+  &00008008 : &ef020001 : SWI     XOS_WriteS
+  &0000800c : &756f6853 : STRBVC  r6, &000077c1
+  &00008010 : &276e646c : STRBHS  r6, [lr, -r12, ROR #8]!
+
+Last abort:
+  Fault:  &00008004  (DA 'Application Space')
+  IFSR:   &00000002  (Debug event)
+  IFAR:   &00008004  (DA 'Application Space')
+*quit

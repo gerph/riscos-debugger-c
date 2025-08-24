@@ -1,0 +1,11 @@
+Debugger_DisassembleArch 3
+Input: &13 &24
+Input size: 2
+Get output buffer size...
+Output size needed: 40
+Disassemble...
+Disassembly:
+        MOVS    r4, #&13                  ; #19
+
+Remaining input bytes: 0
+Consumed input bytes:  2
