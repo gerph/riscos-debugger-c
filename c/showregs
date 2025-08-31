@@ -6,12 +6,19 @@
  ******************************************************************/
 
 #include <string.h>
+#include <stdio.h>
 #include "rodis.h"
 #include "introspection.h"
 #include "io.h"
 
 #ifndef __riscos64
 #include "faultinfo.h"
+#endif
+
+#ifdef __riscos64
+    #define ARCHNAME "AArch64"
+#else
+    #define ARCHNAME "ARM"
 #endif
 
 
@@ -168,6 +175,8 @@ void cmd_showregs(uint32_t *regdump,
 
     int offset = 0;
 
+    printf("Exception dump information for " ARCHNAME " (stored at &%08x):\n\n", regdump);
+
     /* Let's check whether all the values are 0 */
     {
         char *regdumpbytes = (char *)regdump;
@@ -183,7 +192,7 @@ void cmd_showregs(uint32_t *regdump,
         }
         if (!any_values)
         {
-            writeln("No dump present");
+            writeln("Exception dump is empty");
             return;
         }
     }
