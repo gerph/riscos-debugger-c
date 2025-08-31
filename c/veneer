@@ -41,7 +41,7 @@
 #endif
 
 /* Number of rows to dump in *Memory by default */
-#define MEMORY_DEFAULT_SIZE (40)
+#define MEMORY_DEFAULT_SIZE (16)
 
 /* Define this to debug this file */
 //#define DEBUG

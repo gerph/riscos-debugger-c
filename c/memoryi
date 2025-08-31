@@ -13,6 +13,9 @@
 #include "memoryi.h"
 #include "rodis.h"
 
+/* Define this to omit the top-bit set (0x80+) from being printed */
+#define HIDE_TOP_BIT_CHARACTERS
+
 
 int get_filetype(const char *filename)
 {
@@ -204,7 +207,7 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
         if (data_read == 0)
             break;
 
-        printf("%08lx : ", address);
+        printf("%08lX : ", address);
         for (offset=0; offset < row_size; offset+=data_width)
         {
             if (offset + data_width > data_read)
@@ -218,7 +221,7 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
                     case 2:
                         {
                             uint16_t *itemdata = (uint16_t*)(&data[offset]);
-                            printf("%04x ", *itemdata);
+                            printf("%04X ", *itemdata);
                         }
                         break;
 
@@ -226,14 +229,14 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
                     case 1:
                         {
                             uint8_t *itemdata = (uint8_t*)(&data[offset]);
-                            printf("%02x ", *itemdata);
+                            printf("%02X ", *itemdata);
                         }
                         break;
 
                     case 4:
                         {
                             uint32_t *itemdata = (uint32_t*)(&data[offset]);
-                            printf("%08lx ", *itemdata);
+                            printf("%08lX ", *itemdata);
                         }
                         break;
                 }
@@ -255,6 +258,10 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
                     value = '.';
                 else if (value == 127)
                     value = '.';
+#ifdef HIDE_TOP_BIT_CHARACTERS
+                else if (value >= 128)
+                    value = '.';
+#endif
                 printf("%c", value);
             }
         }
