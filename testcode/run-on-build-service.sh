@@ -130,8 +130,18 @@ fi
 # Archive the files we want
 zip -q9r /tmp/testrun.zip "${files[@]}" .robuild.yaml
 
+if [[ -t 0 ]] ; then
+    function tidy_output() {
+        sed -E -e "s/\r\r/\r/g"
+    }
+else
+    function tidy_output() {
+        sed -E -e "s/\r//g"
+    }
+fi
+
 # And send it off to the build system
-if "$build_tool" "${build_args[@]}" -a off -A "$arch" -t "$timeout" -i /tmp/testrun.zip | sed -E -e "s/\r//g" ; then
+if "$build_tool" "${build_args[@]}" -a off -A "$arch" -t "$timeout" -i /tmp/testrun.zip | tidy_output ; then
     rc=0
 else
     rc=$?
