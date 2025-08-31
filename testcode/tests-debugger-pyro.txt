@@ -201,6 +201,7 @@ Test: *MemoryI UtilityModule address (coloured)
 Command: $TOOL --load-internal-modules --config vdu.implementation=ansitext --config vdu.mode=28 --set-variable "Debugger$Options=C" --command "MemoryI 3800404+54"
 Expect: expect/pymodules/debugger/star_memoryi_utilitymodule_coloured
 Replace: expect/ansi_replacements
+Disable: Not relevant outside Pyromaniac
 
 Test: *MemoryI register relative
 Command: $TOOL --load-internal-modules --command "Load bin.exception_write 8000" --command "gos"
@@ -215,6 +216,7 @@ RC: 1
 Test: *MemoryI (no Capstone)
 Command: $TOOL --load-internal-modules --preload preloads/disable_capstone.py --command "MemoryI 3800404+54"
 Expect: expect/pymodules/debugger/star_memoryi_nocapstone
+Disable: Not relevant outside Pyromaniac
 
 Test: *MemoryI (DisassembleFlags)
 Command: $TOOL --load-internal-modules --command "DisassembleFlags -APCS Y -lower N" --command "MemoryI 3800404+54"
@@ -231,10 +233,12 @@ Test: *MemoryI T (coloured)
 Command: $TOOL --load-internal-modules --config vdu.implementation=ansitext --config vdu.mode=28 --set-variable "Debugger$Options=C" --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
 Expect: expect/pymodules/debugger/star_memoryi_thumbcode_coloured
 Replace: expect/ansi_replacements
+Disable: Not relevant outside Pyromaniac
 
 Test: *MemoryI T (no Capstone)
 Command: $TOOL --load-internal-modules --preload preloads/disable_capstone.py --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
 Expect: expect/pymodules/debugger/star_memoryi_thumbcode_nocapstone
+Disable: Not relevant outside Pyromaniac
 
 
 Group: Debugger: *DumpI

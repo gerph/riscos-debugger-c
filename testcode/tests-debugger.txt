@@ -201,7 +201,7 @@ Test: *MemoryI UtilityModule address (coloured)
 Command: $TOOL --quiet --config vdu.implementation=ansitext --config vdu.mode=28 --set-variable "Debugger$Options=C" --command "MemoryI 3800404+54"
 Expect: expect/debugger/star_memoryi_utilitymodule_coloured
 Replace: expect/ansi_replacements
-Disable: No colouring
+Disable: Not relevant outside Pyromaniac
 
 Test: *MemoryI register relative
 Command: $TOOL --quiet --command "Load bin.exception_write 8000" --command "gos"
@@ -234,7 +234,7 @@ Test: *MemoryI T (coloured)
 Command: $TOOL --quiet --config vdu.implementation=ansitext --config vdu.mode=28 --set-variable "Debugger$Options=C" --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
 Expect: expect/debugger/star_memoryi_thumbcode_coloured
 Replace: expect/ansi_replacements
-Disable: No coloured
+Disable: Not relevant outside Pyromaniac
 
 Test: *MemoryI T (no Capstone)
 Command: $TOOL --quiet --preload preloads/disable_capstone.py --command "Load bin.debugger_thumbcode 8000" --command "MemoryI T 8000+10_108"
@@ -293,7 +293,3 @@ Test: *Vector Invalid
 Command: $TOOL --quiet --command "*Vector Invalid"
 Expect: expect/debugger/star_vector_invalid
 RC: 1
-
-# Additional more involved tests
-#Include: tests-debugger-aarch64.txt
-#Include: tests-debugger-swis.txt
