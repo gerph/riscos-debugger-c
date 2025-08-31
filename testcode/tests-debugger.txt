@@ -114,6 +114,7 @@ Expect: expect/debugger/star_memory_negative_offset
 Test: *Memory (show top bit)
 Command: $TOOL --quiet --config debugger.hide_topbitset=false --command "Load testdata.fstest.random 8000" --command "Memory 8000"
 Expect: expect/debugger/star_memory_topbitset
+Disable: Pyromaniac specific test
 
 Test: *Memory B
 Command: $TOOL --quiet --command "Load testdata.fstest.random 8000" --command "Memory B 8000"
@@ -148,6 +149,7 @@ Disable: No input support
 Test: *Memory excess parameters
 Command: $TOOL --quiet --command "Memory 8000+20+40 0"
 Expect: expect/debugger/star_memory_excess
+Replace: expect/debugger/star_memory_excess_replacements
 RC: 1
 
 
@@ -180,6 +182,7 @@ Expect: expect/debugger/star_memorya_b_value
 Test: *MemoryA excess parameters
 Command: $TOOL --quiet --command "MemoryA 8000 20 foo"
 Expect: expect/debugger/star_memorya_excess
+Replace: expect/debugger/star_memory_excess_replacements
 RC: 1
 
 
@@ -207,11 +210,11 @@ Test: *MemoryI register relative
 Command: $TOOL --quiet --command "Load bin.exception_write 8000" --command "gos"
 Expect: expect/debugger/star_memoryi_pc-10_after_abort
 InputLine: go 8000\nmemoryi pc-10+20\nquit\n
-Disable: No input support
 
 Test: *MemoryI excess parameters
 Command: $TOOL --quiet --command "Memory 8000+20+10 foo"
 Expect: expect/debugger/star_memoryi_excess
+Replace: expect/debugger/star_memory_excess_replacements
 RC: 1
 
 Test: *MemoryI (no Capstone)
