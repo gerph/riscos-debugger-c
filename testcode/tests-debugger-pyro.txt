@@ -210,6 +210,7 @@ Test: *MemoryI register relative
 Command: $TOOL --load-internal-modules --command "Load bin.exception_write 8000" --command "gos"
 Expect: expect/pymodules/debugger/star_memoryi_pc-10_after_abort
 InputLine: go 8000\nmemoryi pc-10+20\nquit\n
+Disable: No input support
 
 Test: *MemoryI excess parameters
 Command: $TOOL --load-internal-modules --command "Memory 8000+20+10 foo"
@@ -225,6 +226,7 @@ Disable: Not relevant outside Pyromaniac
 Test: *MemoryI (DisassembleFlags)
 Command: $TOOL --load-internal-modules --command "DisassembleFlags -APCS Y -lower N" --command "MemoryI 3800404+54"
 Expect: expect/pymodules/debugger/star_memoryi_disassembleflags
+Disable: No DebuggerPlus support
 
 
 Group: Debugger: *MemoryI (Thumb)

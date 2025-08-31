@@ -103,7 +103,7 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
                                              annotator_f annotator)
 {
     /* We write out out disassembly as:
-            ADDR : WORD : text : disassembly[ ; annotation]
+            ADDR : text : WORD : disassembly[ ; annotation]
      */
     uint32_t word = 0;
     uint32_t address = 0;
@@ -128,11 +128,7 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
         if (accessor->read_block(accessor, address, (uint8_t*)&word, instsize) != instsize)
             break;
 
-        printf("%08lx : ", address);
-        if (instsize == 2)
-            printf("%04lx : ", word);
-        else
-            printf("%08lx : ", word);
+        printf("%08lX : ", address);
 
         /* Write out the textual form of the word */
         {
@@ -144,10 +140,19 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
                     value = '.';
                 else if (value == 127)
                     value = '.';
+#ifdef HIDE_TOP_BIT_CHARACTERS
+                else if (value >= 128)
+                    value = '.';
+#endif
                 printf("%c", value);
             }
         }
         printf(" : ");
+
+        if (instsize == 2)
+            printf("%04lX : ", word);
+        else
+            printf("%08lX : ", word);
 
         {
             const char *dis = arch->disassemble((uint8_t*)&word, instsize, address);

@@ -1,0 +1,76 @@
+; This is just a file containing thumb code from the s.debugger test code
+; It is used by the `MemoryI T` test code.
+
+        AREA    |Thumb$$Code|, CODE, READONLY
+
+        MACRO
+        DisassembleStart $name,$type
+        DCW     0
+        DCW     0
+        MEND
+
+        MACRO
+        DisassembleEnd
+        ALIGN
+        MEND
+
+; This section is just lifted from s.debugger:
+
+        DisassembleStart "Special",Thumb
+        DCW     &be03       ; bkpt #3
+        DCW     &df01       ; svc #1
+        DCW     &bf10       ; yield
+        DCW     &de2a       ; udf #42
+        DisassembleEnd
+
+        DisassembleStart "Branches",Thumb
+        DCW     &dd02       ; ble #+4
+        DCW     &e7ff       ; b #+-2
+        DCW     &47b8       ; blx r7
+        DCW     &b132       ; cbz r2, #+12
+        DCW     &bbbb       ; cbnz r3, #+110
+        DisassembleEnd
+
+        DisassembleStart "Load/Store",Thumb
+        DCW     &992c       ; ldr r1, [sp, #176]
+        DCW     &4a04       ; ldr r2, [pc, #16]
+        DCW     &88f3       ; ldrh r3, [r6, #6]
+        DCW     &5073       ; str r3, [r6, r1]
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic",Thumb
+        DCW     &407c       ; eor r4, r4, r7
+        DCW     &431f       ; orr r7, r7, r3
+        DCW     &372a       ; add r7, r7, #42
+        DCW     &1acd       ; sub r5, r1, r3
+        DCW     &1ef4       ; sub r4, r6, #3
+        DCW     &ad18       ; add r5, sp, #96
+        DCW     &449b       ; add sp, sp, r3
+        DCW     &4253       ; rsb r3, r2, #0
+        DisassembleEnd
+
+        DisassembleStart "Binary ops",Thumb
+        DCW     &4676       ; mov r6, lr
+        DCW     &2413       ; mov r4, #19
+        DCW     &b2b2       ; uxth r2, r6
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic pc-relative",Thumb
+        DCW     &a110       ; adr r1, #+64
+        DisassembleEnd
+
+        DisassembleStart "Load/Store multiple",Thumb
+        DCW     &c124       ; stm r1, {r2,r5}
+        DCW     &b4ff       ; push {r0-r7}
+        DCW     &b5ff       ; push {r0-r7,lr}
+        DCW     &bcff       ; pop {r0-r7}
+        DCW     &bdff       ; pop {r0-r7,pc}
+        DisassembleEnd
+
+        DisassembleStart "Comparisons",Thumb
+        DCW     &42a2       ; cmp r2, r4
+        DCW     &4545       ; cmp r5, r8
+        DCW     &bf34       ; IT execution 
+        DisassembleEnd
+
+        END
