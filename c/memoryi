@@ -203,9 +203,24 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
         int row_size = 16;
         uint8_t data[16];
         int data_read;
-        data_read = accessor->read_block(accessor, address, (uint8_t*)&data, row_size);
+        int to_read = row_size;
+        int left_to_read = end - address;
+        if (left_to_read < row_size)
+        {
+            /* Ensure that the output data is zero'd if we would overrun */
+            to_read = left_to_read;
+            memset(data, 0, sizeof(data));
+        }
+
+        data_read = accessor->read_block(accessor, address, (uint8_t*)&data, to_read);
         if (data_read == 0)
             break;
+
+        if (data_read < row_size)
+        {
+            /* Round up the amount we will print */
+            data_read = (data_read + data_width) & ~(data_width -1);
+        }
 
         printf("%08lX : ", address);
         for (offset=0; offset < row_size; offset+=data_width)
