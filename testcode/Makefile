@@ -45,5 +45,11 @@ tests-%.txt: tests-%-pyro.txt transform-pyro-tests-to-buildservice.sh
 ${MODULE},ffa: ../rm32/${MODULE},ffa
 	cp $? $@
 
+ifeq (${TEST},)
+TESTARGS =
+else
+TESTARGS = --test "${TEST}"
+endif
+
 tests: ${MODULE},ffa tests-debugger.txt tests-debugger-swis.txt run-on-build-service.sh test.pl
-	./test.pl --show-command --show-diff ./run-on-build-service.sh .
+	./test.pl ${TESTARGS} --show-command --show-diff ./run-on-build-service.sh . < /dev/null
