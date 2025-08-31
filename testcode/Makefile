@@ -53,3 +53,6 @@ endif
 
 tests: ${MODULE},ffa tests-debugger.txt tests-debugger-swis.txt run-on-build-service.sh test.pl
 	./test.pl ${TESTARGS} --show-command --show-diff ./run-on-build-service.sh . < /dev/null
+
+build:
+	cd .. ; riscos-amu -f MakefileModule,fe1 ; cd - ; cp ../rm32/Debugger,ffa Debugger,ffa

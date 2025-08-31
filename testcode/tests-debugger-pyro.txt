@@ -114,6 +114,7 @@ Expect: expect/pymodules/debugger/star_memory_negative_offset
 Test: *Memory (show top bit)
 Command: $TOOL --load-internal-modules --config debugger.hide_topbitset=false --command "Load testdata.fstest.random 8000" --command "Memory 8000"
 Expect: expect/pymodules/debugger/star_memory_topbitset
+Disable: Pyromaniac specific test
 
 Test: *Memory B
 Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "Memory B 8000"

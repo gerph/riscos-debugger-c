@@ -16,6 +16,16 @@
 /* Define this to omit the top-bit set (0x80+) from being printed */
 #define HIDE_TOP_BIT_CHARACTERS
 
+/* Define this to debug this file */
+//#define DEBUG
+
+
+#ifdef DEBUG
+#define dprintf if (1) printf
+#else
+#define dprintf if (0) printf
+#endif
+
 
 int get_filetype(const char *filename)
 {
@@ -203,29 +213,50 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
         int row_size = 16;
         uint8_t data[16];
         int data_read;
-        int to_read = row_size;
+        int words_read;
         int left_to_read = end - address;
-        if (left_to_read < row_size)
+        uint32_t rowstart = address;
+        int gap;
+        int words_gap;
+        int to_read = row_size;
+
+        /* Work out the number of bytes we need to skip for row start */
+        rowstart = address & ~(row_size-1);
+        gap = (address & (row_size-1));
+        if (gap != 0)
+        {
+            memset(data, 0, sizeof(data));
+            to_read = row_size - gap;
+        }
+        words_gap = (gap & ~(data_width-1));
+
+        if (left_to_read < to_read)
         {
             /* Ensure that the output data is zero'd if we would overrun */
             to_read = left_to_read;
             memset(data, 0, sizeof(data));
         }
 
-        data_read = accessor->read_block(accessor, address, (uint8_t*)&data, to_read);
+        data_read = accessor->read_block(accessor, address, (uint8_t*)&data[gap], to_read);
         if (data_read == 0)
             break;
 
         if (data_read < row_size)
         {
             /* Round up the amount we will print */
-            data_read = (data_read + data_width) & ~(data_width -1);
+            words_read = (data_read + (data_width - 1)) & ~(data_width -1);
+        }
+        else
+        {
+            words_read = data_read;
         }
 
-        printf("%08lX : ", address);
+        dprintf("Row start &%08x, gap = &%x, words_gap = &%x, to_read = &%x, data_read = &%x, words_read = &%x\n", rowstart, gap, words_gap, to_read, data_read, words_read);
+
+        printf("%08lX : ", rowstart);
         for (offset=0; offset < row_size; offset+=data_width)
         {
-            if (offset + data_width > data_read)
+            if (offset >= words_gap + words_read || offset < words_gap)
             {
                 printf("%*s ", data_width * 2, "");
             }
@@ -262,7 +293,7 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
         /* Write out the textual form of the word */
         for (offset=0; offset<row_size; offset++)
         {
-            if (offset > data_read)
+            if (offset >= gap + data_read || offset < gap)
             {
                 printf(" ");
             }
@@ -283,7 +314,7 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
 
         printf("\n");
 
-        address += row_size;
+        address = rowstart + row_size;
 
         if (is_escape_pressed())
         {
