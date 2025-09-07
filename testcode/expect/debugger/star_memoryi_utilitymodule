@@ -2,20 +2,20 @@
 03800408 : ...@ : 40000000 : ANDMI   r0, r0, r0
 0380040C : .... : 00000000 : ANDEQ   r0, r0, r0
 03800410 : .... : 00000000 : ANDEQ   r0, r0, r0
-03800414 : <... : 0000003C : ANDEQ   r0, r0, r12, lsr r0
-03800418 : H... : 00000048 : ANDEQ   r0, r0, r8, asr #32
+03800414 : <... : 0000003C : ANDEQ   r0, r0, r12, LSR r0
+03800418 : H... : 00000048 : ANDEQ   r0, r0, r8, ASR #32
 0380041C : .... : 00000000 : ANDEQ   r0, r0, r0
-03800420 : .,.. : 00042C80 : ANDEQ   r2, r4, r0, lsl #25
+03800420 : .,.. : 00042C80 : ANDEQ   r2, r4, r0, LSL #25
 03800424 : .... : 00000000 : ANDEQ   r0, r0, r0
-03800428 : h... : 00000068 : ANDEQ   r0, r0, r8, rrx
+03800428 : h... : 00000068 : ANDEQ   r0, r0, r8, RRX
 0380042C : .... : 00000000 : ANDEQ   r0, r0, r0
 03800430 : .... : 00000000 : ANDEQ   r0, r0, r0
-03800434 : 4... : 00000034 : ANDEQ   r0, r0, r4, lsr r0
+03800434 : 4... : 00000034 : ANDEQ   r0, r0, r4, LSR r0
 03800438 : .... : 000000F0 : STRDEQ  r0, r1, [r0], -r0
 0380043C : .... : E1A0F00E : MOV     pc, lr
 03800440 : BASI : 49534142 : Undefined instruction
 03800444 : CTra : 61725443 : Undefined instruction
-03800448 : ns.. : 0000736E : ANDEQ   r7, r0, lr, ror #6
+03800448 : ns.. : 0000736E : ANDEQ   r7, r0, lr, ROR #6
 0380044C : BASI : 49534142 : Undefined instruction
 03800450 : CTra : 61725443 : Undefined instruction
-03800454 : ns.0 : 3009736E : ANDCC   r7, r9, lr, ror #6
+03800454 : ns.0 : 3009736E : ANDCC   r7, r9, lr, ROR #6
