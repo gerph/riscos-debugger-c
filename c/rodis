@@ -158,10 +158,23 @@ static char *convert_hex_0x_to_ampersand(char *str)
 const char *lookup_swi(uint32_t swinum)
 {
     static char buffer[128];
+    char *result;
     _kernel_oserror *err;
     err = _swix(OS_SWINumberToString, _INR(0, 2), swinum, buffer, sizeof(buffer));
     if (err)
         return NULL;
+
+    result = buffer;
+    if (*result == 'X')
+        result++;
+    if (result[0] == 'U' &&
+        result[1] == 's' &&
+        result[2] == 'e' &&
+        result[3] == 'r' &&
+        result[4] == '\0')
+    {
+        sprintf(buffer, "&%X", swinum);
+    }
     return buffer;
 }
 

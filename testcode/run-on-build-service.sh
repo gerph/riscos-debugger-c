@@ -22,6 +22,7 @@ timeout=30
 
 # Files we will archive
 files=(Debugger,ffa
+       bin/hello_world,ffc
        bin/debugger,ffc
        bin/debugger_thumbcode,ffc
        testdata
