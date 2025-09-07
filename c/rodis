@@ -359,16 +359,44 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
              MNEMONIC_MATCH("ORR") ||
              MNEMONIC_MATCH("AND") ||
              MNEMONIC_MATCH("BIC") ||
-             MNEMONIC_MATCH("EOR"))
-            && strchr(args, '#') != NULL)
+             MNEMONIC_MATCH("EOR")))
         {
-            comment = decode_immediate(d.imm, it_positive);
-
-            /* Darm produces 'rrx #0' which isn't correct - RRX is encoded as ROR 0. */
+            // Fix up the ROR, ROL, LSL, LSR, ASR to be capitalised
+            char *shift = strstr(args, "ro");
+            if (!shift)
             {
-                char *rrx = strstr(args, "rrx ");
-                if (rrx)
-                    rrx[3] = '\0';
+                shift = strstr(args, "ls");
+            }
+            if (shift)
+            {
+                if (shift[2] == 'r' || shift[2] == 'l')
+                {
+                    shift[0] &= ~32;
+                    shift[1] &= ~32;
+                    shift[2] &= ~32;
+                }
+            }
+            else
+            {
+                shift = strstr(args, "asr");
+                if (shift)
+                {
+                    shift[0] &= ~32;
+                    shift[1] &= ~32;
+                    shift[2] &= ~32;
+                }
+            }
+
+            if (strchr(args, '#') != NULL)
+            {
+                comment = decode_immediate(d.imm, it_positive);
+
+                /* Darm produces 'rrx #0' which isn't correct - RRX is encoded as ROR 0. */
+                {
+                    char *rrx = strstr(args, "rrx ");
+                    if (rrx)
+                        rrx[3] = '\0';
+                }
             }
         }
 
