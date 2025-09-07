@@ -259,8 +259,11 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             hashplus = strstr(newargs, "#+");
             if (hashplus)
             {
-                sprintf(hashplus, "&%08x", d.U ? address + (thumb ? 4 : 8) + d.imm
-                                               : address + (thumb ? 4 : 8) - d.imm);
+                uint32_t rounded = address & ~3;
+                // https://developer.arm.com/documentation/ddi0403/d/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-ARMv7-M-Thumb-instructions/ADR?lang=en
+                // Address alignment is always PC rounded down.
+                sprintf(hashplus, "&%08x", d.U ? rounded + (thumb ? 4 : 8) + d.imm
+                                               : rounded + (thumb ? 4 : 8) - d.imm);
             }
             args = newargs;
         }
@@ -274,8 +277,12 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             bracketpc = strstr(newargs, "[pc");
             if (bracketpc)
             {
-                sprintf(bracketpc, "&%08lx", d.U ? address + (thumb ? 4 : 8) + d.imm
-                                                 : address + (thumb ? 4 : 8) - d.imm);
+                uint32_t rounded = address & ~3;
+                // https://developer.arm.com/documentation/ddi0403/d/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-ARMv7-M-Thumb-instructions/LDR--literal-?lang=en
+                // https://developer.arm.com/documentation/ddi0403/d/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-ARMv7-M-Thumb-instructions/LDRB--literal-?lang=en
+                // Address is always rounded to a word for both LDR and LDRB
+                sprintf(bracketpc, "&%08lx", d.U ? rounded + (thumb ? 4 : 8) + d.imm
+                                                 : rounded + (thumb ? 4 : 8) - d.imm);
             }
             args = newargs;
         }
