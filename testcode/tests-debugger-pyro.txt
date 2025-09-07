@@ -257,11 +257,11 @@ Expect: expect/pymodules/debugger/star_dumpi
 Group: Debugger: *InitStore
 
 Test: *InitStore
-Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "initstore" --command "Memory 8000"
+Command: $TOOL --load-internal-modules --command "appsize 200K" --command "Load testdata.fstest.random 8000" --command "initstore" --command "Memory 8000"
 Expect: expect/pymodules/debugger/star_initstore
 
 Test: *InitStore value
-Command: $TOOL --load-internal-modules --command "Load testdata.fstest.random 8000" --command "initstore 12345678" --command "Memory 8000"
+Command: $TOOL --load-internal-modules --command "appsize 200K" --command "Load testdata.fstest.random 8000" --command "initstore 12345678" --command "Memory 8000"
 Expect: expect/pymodules/debugger/star_initstore_12345678
 
 

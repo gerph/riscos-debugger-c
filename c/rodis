@@ -347,7 +347,9 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
 #define MNEMONIC_MATCH(with) (mnemonic[0] == with[0] && mnemonic[1] == with[1] && mnemonic[2] == with[2])
 
         if ((MNEMONIC_MATCH("MOV") ||
+             MNEMONIC_MATCH("MVN") ||
              MNEMONIC_MATCH("CMP") ||
+             MNEMONIC_MATCH("CMN") ||
              MNEMONIC_MATCH("TEQ") ||
              MNEMONIC_MATCH("TST") ||
              MNEMONIC_MATCH("ADD") ||
@@ -395,7 +397,13 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
                 {
                     char *rrx = strstr(args, "rrx ");
                     if (rrx)
+                    {
                         rrx[3] = '\0';
+                        // And capitalise
+                        rrx[0] &= ~32;
+                        rrx[1] &= ~32;
+                        rrx[2] &= ~32;
+                    }
                 }
             }
         }
@@ -407,7 +415,7 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
 
         if (comment)
         {
-            sprintf(buffer, "%-8s%-24s; %s", mnemonic, args, comment);
+            sprintf(buffer, "%-8s%-26s; %s", mnemonic, args, comment);
         }
         else
         {
