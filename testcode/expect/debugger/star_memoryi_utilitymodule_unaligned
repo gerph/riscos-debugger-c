@@ -1,5 +1,5 @@
-03800404 :  ... :          :                                   ; Offset of Start code
-03800408 : ...@ : 40000000 : ANDMI   r0, r0, r0                ; Offset of Initialise code
-0380040C : .... : 00000000 : ANDEQ   r0, r0, r0                ; Offset of Finalise code
-03800410 : .... : 00000000 : ANDEQ   r0, r0, r0                ; Offset of Service code
-03800414 : <.   : 0000003C : ANDEQ   r0, r0, r12, LSR r0       ; Offset of Title string
+03800404 : .... : 00000000 : ANDEQ   r0, r0, r0
+03800408 : ...@ : 40000000 : ANDMI   r0, r0, r0
+0380040C : .... : 00000000 : ANDEQ   r0, r0, r0
+03800410 : .... : 00000000 : ANDEQ   r0, r0, r0
+03800414 : <... : 0000003C : ANDEQ   r0, r0, r12, lsr r0

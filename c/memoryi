@@ -107,6 +107,7 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
      */
     uint32_t word = 0;
     uint32_t address = 0;
+    int instsize = arch->inst_width_max; /* FIXME: Probably only works if the min and max are the same */
 
     if (start < address)
     {
@@ -122,9 +123,10 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
         address = start;
     }
 
+    address = address & ~(instsize-1); /* Assumes instruction size is a multiple of 2 */
+
     while (address < end)
     {
-        int instsize = arch->inst_width_max; /* FIXME: Probably only works if the min and max are the same */
         if (accessor->read_block(accessor, address, (uint8_t*)&word, instsize) != instsize)
             break;
 
