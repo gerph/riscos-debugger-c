@@ -488,6 +488,8 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
         convert_hex_0x_to_ampersand(buffer);
         out = &buffer[strlen(buffer)];
 
+        if (ad->instr_id != AD_INSTR_ADR &&
+            ad->instr_id != AD_INSTR_ADRP)
         {
             char *com = comment;
             int i;
