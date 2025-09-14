@@ -14,7 +14,7 @@ Test: Move
     MOV     r1, #296                  ; #&128
     MOV     r1, #&80000               ; #524288 = 128<<12 = bit 19
     MVN     r1, r2
-    MVN     r1, r2, LSL #5            ; #-1
+    MVN     r1, r2, LSL #5
     MVN     r1, r2, LSL r3
     MVN     r1, #6                    ; #-7
     MVN     r1, #288                  ; #-289

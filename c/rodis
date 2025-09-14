@@ -397,26 +397,27 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             {
                 /* No comment about the offset */
             }
-            else if (strchr(args, '#') != NULL)
+            else if (d.I == B_SET)
             {
                 comment = decode_immediate(d.imm, it_positive);
-
+            }
+            else if (d.shift_type != S_INVLD && strchr(args, '#') != NULL)
+            {
                 /* Darm produces 'rrx #0' which isn't correct - RRX is encoded as ROR 0. */
+                char *rrx = strstr(args, "rrx ");
+                if (rrx)
                 {
-                    char *rrx = strstr(args, "rrx ");
-                    if (rrx)
-                    {
-                        rrx[3] = '\0';
-                        // And capitalise
-                        rrx[0] &= ~32;
-                        rrx[1] &= ~32;
-                        rrx[2] &= ~32;
-                    }
+                    rrx[3] = '\0';
+                    // And capitalise
+                    rrx[0] &= ~32;
+                    rrx[1] &= ~32;
+                    rrx[2] &= ~32;
                 }
             }
         }
 
-        if ((MNEMONIC_MATCH("MVN") ||
+        if (d.I == B_SET &&
+            (MNEMONIC_MATCH("MVN") ||
              MNEMONIC_MATCH("CMN"))
             && strchr(args, '#') != NULL)
             comment = decode_immediate(d.imm, mnemonic[0] == 'M' ? it_negated : it_negative);
