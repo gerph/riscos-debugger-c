@@ -595,10 +595,19 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
  ******************************************************************/
 const char *disassemble_memory_arm32(uint8_t *data, int datalen, uint32_t address)
 {
-    if (datalen != 4)
+    uint32_t word;
+    if (datalen < 4)
         return "Invalid length";
 
-    return disassemble_darm(*(uint32_t*)data, address, 0); /* FIXME: Assumes data is aligned */
+    if ((((uint32_t)data) & 3) == 0)
+        word = *(uint32_t*)data;
+    else
+        word = (data[0] << 0) |
+               (data[1] << 8) |
+               (data[2] << 16) |
+               (data[3] << 24);
+
+    return disassemble_darm(word, address, 0);
 }
 
 
@@ -612,10 +621,17 @@ const char *disassemble_memory_arm32(uint8_t *data, int datalen, uint32_t addres
  ******************************************************************/
 const char *disassemble_memory_thumb(uint8_t *data, int datalen, uint32_t address)
 {
-    if (datalen != 2)
+    uint32_t word;
+    if (datalen < 2)
         return "Invalid length";
 
-    return disassemble_darm(*(uint16_t*)data, address, 1); /* FIXME: Assumes data is aligned */
+    if ((((uint32_t)data) & 1) == 0)
+        word = *(uint16_t*)data;
+    else
+        word = (data[0] << 0) |
+               (data[1] << 8);
+
+    return disassemble_darm(word, address, 1);
 }
 
 
@@ -629,10 +645,19 @@ const char *disassemble_memory_thumb(uint8_t *data, int datalen, uint32_t addres
  ******************************************************************/
 const char *disassemble_memory_arm64(uint8_t *data, int datalen, uint32_t address)
 {
-    if (datalen != 4)
+    uint32_t word;
+    if (datalen < 4)
         return "Invalid length";
 
-    return disassemble_armadillo(*(uint32_t*)data, address); /* FIXME: Assumes data is aligned */
+    if ((((uint32_t)data) & 3) == 0)
+        word = *(uint32_t*)data;
+    else
+        word = (data[0] << 0) |
+               (data[1] << 8) |
+               (data[2] << 16) |
+               (data[3] << 24);
+
+    return disassemble_armadillo(word, address);
 }
 
 
