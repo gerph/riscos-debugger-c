@@ -98,14 +98,14 @@ Test: Load/Store indexed
     LDRB    r1, [r2, #1]
     STRB    r1, [r2, #1]
     LDR     r1, [r2, #4]
-    LDR     r1, [r2, #552]
+    LDR     r1, [r2, #552]            ; #&228
     LDR     r1, [r2, #-4]
     LDR     r1, [r2, #4]!
     LDR     r1, [r2, #-4]!
     LDR     r1, [r2, r3]
     LDR     r1, [r2, -r3]
-    LDR     r1, [r2, r3, lsl #2]
-    LDR     r1, [r2, r3, lsr #2]
+    LDR     r1, [r2, r3, LSL #2]
+    LDR     r1, [r2, r3, LSR #2]
 
 Test: Load/Store post-indexed
     LDRB    r1, [r2], #1
@@ -113,8 +113,8 @@ Test: Load/Store post-indexed
     LDR     r1, [r2], #-4
     LDR     r1, [r2], r3
     LDR     r1, [r2], -r3
-    LDR     r1, [r2], r3, lsl #2
-    LDR     r1, [r2], r3, lsr #2
+    LDR     r1, [r2], r3, LSL #2
+    LDR     r1, [r2], r3, LSR #2
 
 Test: Load/Store pc-relative
     LDR     r1, &00008004

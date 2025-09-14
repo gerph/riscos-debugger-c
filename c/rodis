@@ -361,7 +361,9 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
              MNEMONIC_MATCH("ORR") ||
              MNEMONIC_MATCH("AND") ||
              MNEMONIC_MATCH("BIC") ||
-             MNEMONIC_MATCH("EOR")))
+             MNEMONIC_MATCH("EOR") ||
+             MNEMONIC_MATCH("LDR") ||
+             MNEMONIC_MATCH("STR")))
         {
             // Fix up the ROR, ROL, LSL, LSR, ASR to be capitalised
             char *shift = strstr(args, "ro");
@@ -389,7 +391,13 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
                 }
             }
 
-            if (strchr(args, '#') != NULL)
+            if (mnemonic[1] == 'D' &&
+                mnemonic[2] == 'R' &&
+                d.Rn == PC) /* LDR and STR instructions with a PC relative operation */
+            {
+                /* No comment about the offset */
+            }
+            else if (strchr(args, '#') != NULL)
             {
                 comment = decode_immediate(d.imm, it_positive);
 
