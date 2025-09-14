@@ -722,8 +722,9 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
 
         if (datalen < wordsize)
         {
+            /* They didn't supply enough data */
             r->r[2] = -wordsize;
-            return err_BufferOverflow;
+            return err_NotEnoughInputData;
         }
 
         str = parsed_arch.disassemble(data, datalen, addr);
@@ -731,6 +732,7 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
         needed = strlen(str) + 1;
         if (outputlen < needed)
         {
+            /* They didn't supply enough output buffer */
             r->r[5] = -needed;
             return err_BufferOverflow;
         }
