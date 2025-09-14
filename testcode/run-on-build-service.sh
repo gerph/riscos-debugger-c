@@ -134,11 +134,11 @@ zip -q9r /tmp/testrun.zip "${files[@]}" .robuild.yaml
 
 if [[ -t 0 ]] ; then
     function tidy_output() {
-        sed -E -e "s/\r\r/\r/g"
+        sed -E -e "s/\\r\\r/\\r/g"
     }
 else
     function tidy_output() {
-        sed -E -e "s/\r//g"
+        sed -E -e "s/\\r//g"
     }
 fi
 
