@@ -77,6 +77,18 @@ jobs:
           # Send the archive file to build service
           ./riscos-build-online -i /tmp/source-archive.zip -a off -t 600 -o /tmp/built
 
+      - name: Test the module
+        run: |
+          # Extract the Debugger we built
+          unzip /tmp/source-archive.zip Artifacts/Debugger,ffa
+
+          # Put it in the tests directory so we can use it
+          mv Artifacts/Debugger,ffa testcode/Debugger,ffa
+
+          # And run the tests!
+          cd testcode
+          make tests
+
       - name: Give the output a versioned name
         id: version
         run: |
