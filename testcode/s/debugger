@@ -1,0 +1,817 @@
+
+        AREA    |Test$$Code|, CODE
+
+        GET     hdr.swis
+        GET     hdr.macros
+        GET     hdr.printmacros
+
+Debugger_Flags * &40382
+Debugger_CPU * &40383
+Debugger_DisassemblePlus * &40384
+Debugger_DisassembleArch * &40385
+XDebugger_DisassembleArch * &60385
+
+debugger   ROUT
+        Push    "lr"
+        MOV     r8, r1
+
+10
+        ADR     lr, %BT10
+        LDRB    r0, [r8], #1
+        TEQ     r0, #'d'
+        BEQ     disassemble
+
+        TEQ     r0, #'f'
+        BEQ     disassemble_fpa
+
+        TEQ     r0, #'t'
+        BEQ     disassemble_thumb
+
+        TEQ     r0, #'p'
+        BEQ     debugger_plus
+
+        TEQ     r0, #'a'
+        BEQ     disassemble_arch
+
+        CMP     r0, #32
+        BLO     %FT90
+
+syntax
+        PrintLine "Syntax: debugger {d|f|t|pf<bic>,<eor>,|pd<flags>,|a<arch>,<sequence>,}*"
+        PrintLine "Options"
+        PrintLine "  d - disassemble ARM instructions"
+        PrintLine "  f - disassemble ARM FPA instructions"
+        PrintLine "  t - disassemble Thumb instructions"
+        PrintLine "  p - DebuggerPlus operations"
+        PrintLine "         pf - Debugger_Flags BIC and EOR"
+        PrintLine "         pd - Debugger_DisassemblePlus"
+        PrintLine "  a - Debugger_DisassembleArch calls"
+
+90
+        Pull    "pc"
+
+
+disassemble SIGNATURE
+        Push    "lr"
+
+        GBLA    count
+count   SETA    0
+
+        MACRO
+        DisassembleStart $name,$type
+count   SETA    count + 1
+
+        PrintMessage "Test: "
+        ADR     r0, disassemble_name_$count
+        SWI     OS_Write0
+        SWI     OS_NewLine
+        ADR     r4, disassemble_start_$count
+        ADR     r5, disassemble_end_$count
+10
+    [ "$type" = "Thumb"
+        LDRH    r0, [r4], #2
+    |
+        LDR     r0, [r4], #4
+    ]
+        XSWI    Debugger_Disassemble$type,, &8000
+        PrintMessage "    "
+        PrintString r1
+        SWI     XOS_NewLine
+        CMP     r4, r5
+        BLO     %BT10
+
+        SWI     OS_NewLine
+        B       disassemble_exit_$count
+disassemble_name_$count
+        = "$name", 0
+        ALIGN
+disassemble_start_$count
+        MEND
+
+
+        MACRO
+        DisassemblePlus $redocount,$flags
+        PrintMessage "Test: "
+        ADRL    r0, disassemble_name_$redocount
+        SWI     OS_Write0
+        SWI     OS_NewLine
+
+        ADRL    r4, disassemble_start_$redocount
+        ADRL    r5, disassemble_end_$redocount
+10
+        LDR     r0, [r4], #4
+    [ ("$flags" :LEFT: 1) = "r"
+        MOV     r2, $flags
+    |
+        LDR     r2, flags_value_$redocount
+    ]
+        XSWI    Debugger_DisassemblePlus,, &8000
+        PrintMessage "    "
+        PrintString r1
+        SWI     XOS_NewLine
+        CMP     r4, r5
+        BLO     %BT10
+
+        SWI     OS_NewLine
+        B       %FT20
+    [ ("$flags" :LEFT: 1) = "r"
+    |
+flags_value_$redocount
+        DCD     $flags
+    ]
+20
+        MEND
+
+        MACRO
+        DisassembleEnd
+disassemble_end_$count
+        ALIGN
+disassemble_exit_$count
+        MEND
+
+        DisassembleStart "Move"
+        MOV     r0, r0                  ; might be shown as a NOP
+        MOV     r1, r2
+        MOV     r1, r2, LSL #5
+        MOV     r1, r2, LSL r3
+        MOV     r1, r2, LSR #5
+        MOV     r1, r2, LSR r3
+        MOV     r1, r2, ASR #5
+        MOV     r1, r2, ASR r3
+        MOV     r1, r2, ROR #5
+        MOV     r1, r2, ROR r3
+        MOV     pc, lr
+        MOV     r1, #7
+        MOV     r1, #&128
+        MOV     r1, #&80000
+        MVN     r1, r2
+        MVN     r1, r2, LSL #5
+        MVN     r1, r2, LSL r3
+        MOV     r1, #-7
+        MOV     r1, #-&121
+        MOVS    r1, #17
+        MOVS    r1, r2, LSL #5
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic (register)"
+        ADD     r1, r2, r3
+        SUB     r1, r2, r3
+        ADC     r1, r2, r3
+        SBC     r1, r2, r3
+        RSB     r1, r2, r3
+        RSC     r1, r2, r3
+        ADDS    r1, r2, r3
+        SUBS    r1, r2, r3
+        ADCS    r1, r2, r3
+        SBCS    r1, r2, r3
+        RSBS    r1, r2, r3
+        RSCS    r1, r2, r3
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic (constant)"
+        ADD     r1, r2, #1
+        ADD     r1, r2, #&248
+        ADD     r1, r2, #&9900
+        ADD     r1, r2, #&88000
+        ADD     r1, r2, #&80000
+        ADD     r1, r2, #&770000
+        ADD     r1, r2, #&6600000
+        ADD     r1, r2, #&55000000
+        ADD     r1, r2, #&EE000000
+        ADD     r1, r2, #&80000001
+        DCD     &e2821f11               ; ADD r1, r2, #17 ROR 30
+        DisassembleEnd
+
+        DisassembleStart "Multiply"
+        MUL     r1, r2, r3
+        MLA     r1, r2, r3, r4
+        SMULL   r1, r2, r3, r4
+        SMULLS  r1, r2, r3, r4
+        SMULTB  r1, r2, r3
+        SMLAL   r1, r2, r3, r4
+        DisassembleEnd
+
+        DisassembleStart "Logical (register)"
+        ORR     r1, r2, r3
+        EOR     r1, r2, r3
+        AND     r1, r2, r3
+        BIC     r1, r2, r3
+        DisassembleEnd
+
+        DisassembleStart "Logical (register, shifts)"
+        ORR     r1, r2, r3, LSL r4
+        ORR     r1, r2, r3, LSR r4
+        ORR     r1, r2, r3, ASR r4
+        ORR     r1, r2, r3, ROR r4
+        ORR     r1, r2, r3, LSL #7
+        ORR     r1, r2, r3, LSR #7
+        ORR     r1, r2, r3, ASR #7
+        ORR     r1, r2, r3, ROR #7
+        ORR     r1, r2, r3, RRX
+        DisassembleEnd
+
+        DisassembleStart "Logical (constant)"
+        ORR     r1, r2, #1
+        ORR     r1, r2, #&248
+        ORR     r1, r2, #&9900
+        ORR     r1, r2, #&88000
+        ORR     r1, r2, #&80000
+        ORR     r1, r2, #&770000
+        ORR     r1, r2, #&6600000
+        ORR     r1, r2, #&55000000
+        ORR     r1, r2, #&EE000000
+        ORR     r1, r2, #&80000001
+        DCD     &e3821f11               ; ORR r1, r2, #17 ROR 30
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic pc-relative"
+prev    ADR     r1, next
+next    ADR     r1, prev
+        ADD     pc, pc, r2, LSL #2
+        DCD     &128f0f11               ; ADR pc + &4c using 17 ROR 30
+        DisassembleEnd
+
+        DisassembleStart "Load/Store indexed"
+        LDR     r1, [r2, #0]
+        STR     r1, [r2, #0]
+        LDRB    r1, [r2, #1]
+        STRB    r1, [r2, #1]
+        LDR     r1, [r2, #4]
+        LDR     r1, [r2, #&228]
+        LDR     r1, [r2, #-4]
+        LDR     r1, [r2, #4]!
+        LDR     r1, [r2, #-4]!
+        LDR     r1, [r2, r3]
+        LDR     r1, [r2, -r3]
+        LDR     r1, [r2, r3, LSL #2]
+        LDR     r1, [r2, r3, LSR #2]
+        DisassembleEnd
+
+        DisassembleStart "Load/Store post-indexed"
+        LDRB    r1, [r2], #1
+        LDR     r1, [r2], #4
+        LDR     r1, [r2], #-4
+        LDR     r1, [r2], r3
+        LDR     r1, [r2], -r3
+        LDR     r1, [r2], r3, LSL #2
+        LDR     r1, [r2], r3, LSR #2
+        DisassembleEnd
+
+        DisassembleStart "Load/Store pc-relative"
+prev2   LDR     r1, next2
+next2   LDR     r1, prev2
+        LDR     r1, [pc, r2]
+        DisassembleEnd
+
+        DisassembleStart "SWI"
+        SWI     OS_WriteC
+        SWI     OS_WriteI + 'a'
+        DisassembleEnd
+
+        DisassembleStart "Conditions"
+        MOVEQ   r1, r2
+        MOVNE   r1, r2
+        MOVCS   r1, r2
+        MOVCC   r1, r2
+        MOVMI   r1, r2
+        MOVPL   r1, r2
+        MOVVS   r1, r2
+        MOVVC   r1, r2
+        MOVHI   r1, r2
+        MOVLS   r1, r2
+        MOVGE   r1, r2
+        MOVLT   r1, r2
+        MOVGT   r1, r2
+        MOVLE   r1, r2
+        MOVAL   r1, r2
+        MOVNV   r1, r2
+        DisassembleEnd
+
+        DisassembleStart "Conditions (branches)"
+        BEQ     .
+        BNE     .
+        BCS     .
+        BCC     .
+        BMI     .
+        BPL     .
+        BVS     .
+        BVC     .
+        BHI     .
+        BLS     .
+        BGE     .
+        BLT     .
+        BGT     .
+        BLE     .
+        BAL     .
+        BNV     .                       ; now BLX
+        DisassembleEnd
+
+        DisassembleStart "Conditions (branch link)"
+        BLEQ    .
+        BLNE    .
+        BLCS    .
+        BLCC    .
+        BLMI    .
+        BLPL    .
+        BLVS    .
+        BLVC    .
+        BLHI    .
+        BLLS    .
+        BLGE    .
+        BLLT    .
+        BLGT    .
+        BLLE    .
+        BLAL    .
+        BLNV    .                       ; now BLX (with the extra bit being the +2)
+        DisassembleEnd
+
+        DisassembleStart "Comparisons"
+        CMP     r1, r2
+        CMP     r1, #7
+        CMP     r1, r2, LSL #2
+        CMP     r1, r2, LSL r3
+
+        CMN     r1, r2
+        CMP     r1, #-7
+        CMN     r1, r2, LSL #2
+        CMN     r1, r2, LSL r3
+
+        TEQ     r1, r2
+        TEQ     r1, #7
+        TEQ     r1, r2, LSL #2
+        TEQ     r1, r2, LSL r3
+
+        TST     r1, r2
+        TST     r1, #7
+        TST     r1, r2, LSL #2
+        TST     r1, r2, LSL r3
+        DisassembleEnd
+
+        DisassembleStart "Comparisons (special)"
+    ; these aren't special but they're here to ensure we don't mark them all as 'P' operations
+        CMP     pc, #3
+        CMN     pc, #3
+        TEQ     pc, #3
+        TST     pc, #3
+    ; these are special
+        CMPP    pc, #3
+        CMNP    pc, #3
+        TEQP    pc, #3
+        TSTP    pc, #3
+        DisassembleEnd
+
+        DisassembleStart "Status register"
+        MRS     r1, CPSR
+        MRS     r1, SPSR
+        MSR     SPSR, r1
+        MSR     CPSR, r1
+        MSR     CPSR_cxsf, r1
+        MSR     CPSR_c, r1
+        MSR     CPSR_f, r1
+        MSR     CPSR_c, #16 + 3         ; SVC32
+        MSR     CPSR_c, #16 + 0         ; USR32
+        MSR     CPSR_c, #0              ; SVC26
+        MSR     CPSR_cxsf, #16 + 3      ; SVC32, clear everything else
+        MSR     CPSR_f, #(1<<28)
+        MSR     CPSR_f, #(1<<29)
+        MSR     CPSR_f, #(1<<30)
+        MSR     CPSR_f, #(1<<31)
+        DisassembleEnd
+
+        DisassembleStart "Load/Store multiple"
+        LDMIA   r0, {r1-r3}
+        LDMIA   r0!, {r1-r3}
+        LDMIB   r0, {r2, r4, r5}
+        LDMDA   r0, {r7, r9, r11}
+        LDMDB   r0, {r3, r4, r14}
+
+        STMIA   r0, {r1-r3}
+        STMIA   r0!, {r1-r3}
+        STMIB   r0, {r2, r4, r5}
+        STMDA   r0, {r7, r9, r11}
+        STMDB   r0, {r3, r4, r14}
+        DisassembleEnd
+
+        DisassembleStart "Load/Store multiple conditional"
+        LDMNEIA r0, {r1-r3}
+        LDMNEIB r0, {r2, r4, r5}
+        LDMNEDA r0, {r7, r9, r11}
+        LDMNEDB r0, {r3, r4, r14}
+
+        STMNEIA r0, {r1-r3}
+        STMNEIB r0, {r2, r4, r5}
+        STMNEDA r0, {r7, r9, r11}
+        STMNEDB r0, {r3, r4, r14}
+        DisassembleEnd
+
+        DisassembleStart "Load/Store multiple (sp)"
+        LDMIA   sp!, {r1-r3}
+        LDMIB   sp!, {r2, r4, r5}
+        LDMDA   sp!, {r7, r9, r11}
+        LDMDB   sp!, {r3, r4, r14}
+
+        STMIA   sp!, {r1-r3}
+        STMIB   sp!, {r2, r4, r5}
+        STMDA   sp!, {r7, r9, r11}
+        STMDB   sp!, {r3, r4, r14}
+        DisassembleEnd
+
+        DisassembleStart "Low values"
+        DCD     0
+        DCD     100
+        DCD     0x440
+        DisassembleEnd
+
+        DisassembleStart "Undefined instruction"
+        DCD     &f9fe7376
+        DCD     &f5f5f7ef
+        DisassembleEnd
+
+        Pull    "pc"
+
+
+debugger_disassembleplus SIGNATURE
+        Push    "lr"
+        BL      get_hex
+        MOV     r6, r0
+
+        GBLA    count2
+count2  SETA    0
+
+        WHILE count2 < count
+count2  SETA    count2 + 1
+        DisassemblePlus $count2, r6
+        WEND
+
+        Pull    "pc"
+
+
+disassemble_fpa SIGNATURE
+        Push    "lr"
+
+        DisassembleStart "Load/Store"
+        LDFS    F1, [r2]
+        LDFS    F1, [r2, #4]
+        LDFS    F1, [r2, #-4]
+        LDFS    F1, [r2, #4]!
+        LDFS    F1, [r2], #4
+    ; different precisions
+        LDFD    F1, [r2]
+        LDFE    F1, [r2]
+        LDFP    F1, [r2]
+    ; stores
+        STFS    F1, [r2]
+    ; Load PC relative
+        LDFS    F1, next3
+next3
+        DisassembleEnd
+
+        DisassembleStart "Load/Store conditional"
+        LDFEQS  F1, [r2]
+        STFMIS  F1, [r2]
+        DisassembleEnd
+
+        DisassembleStart "Load/Store multiple"
+        LFM     F1, 2, [r2]
+        LFM     F1, 2, [r2, #4]
+        LFM     F1, 2, [r2, #-4]
+        LFM     F1, 2, [r2, #4]!
+        SFM     F1, 2, [r2]
+        DisassembleEnd
+
+        DisassembleStart "Binary ops"
+        ADFS    F1, F2, F3
+        MUFS    F1, F2, F3
+        SUFS    F1, F2, F3
+        RSFS    F1, F2, F3
+        DVFS    F1, F2, F3
+        RDFS    F1, F2, F3
+        POWS    F1, F2, F3
+        RPWS    F1, F2, F3
+        RMFS    F1, F2, F3
+        FMLS    F1, F2, F3
+        FDVS    F1, F2, F3
+        FRDS    F1, F2, F3
+        POLS    F1, F2, F3
+        DisassembleEnd
+
+        DisassembleStart "Binary ops (constants)"
+        ADFS    F1, F2, #0
+        ADFS    F1, F2, #0.5
+        ADFS    F1, F2, #1
+        ADFS    F1, F2, #2
+        ADFS    F1, F2, #3
+        ADFS    F1, F2, #4
+        ADFS    F1, F2, #5
+        ADFS    F1, F2, #10
+        DisassembleEnd
+
+        DisassembleStart "Binary ops (rounding)"
+        ADFS    F1, F2, #0
+        ADFSP   F1, F2, #0
+        ADFSM   F1, F2, #0
+        ADFSZ   F1, F2, #0
+        DisassembleEnd
+
+        DisassembleStart "Binary ops (precision)"
+        ADFS    F1, F2, #0
+        ADFD    F1, F2, #0
+        ADFE    F1, F2, #0
+        DisassembleEnd
+
+        DisassembleStart "Binary ops (conditional)"
+        ADFEQS  F1, F2, #0
+        ADFPLS  F1, F2, #0
+        DisassembleEnd
+
+        DisassembleStart "Unary ops"
+        MVFS    F1, F2
+        MNFS    F1, F2
+        ABSS    F1, F2
+        RNDS    F1, F2
+        SQTS    F1, F2
+        LOGS    F1, F2
+        LGNS    F1, F2
+        EXPS    F1, F2
+        SINS    F1, F2
+        COSS    F1, F2
+        TANS    F1, F2
+        ASNS    F1, F2
+        ACSS    F1, F2
+        ATNS    F1, F2
+        URDS    F1, F2
+        NRMS    F1, F2
+        DisassembleEnd
+
+        DisassembleStart "Transfers (and precision)"
+        FIX     R1, F1
+        FLTS    F1, R1
+        FLTD    F1, R1
+        FLTE    F1, R1
+        DisassembleEnd
+
+        DisassembleStart "Transfers (rounding)"
+        FIX     R1, F1
+        FIXP    R1, F1
+        FIXM    R1, F1
+        FIXZ    R1, F1
+        FLTS    F1, R1
+        FLTSP   F1, R1
+        FLTSM   F1, R1
+        FLTSZ   F1, R1
+        DisassembleEnd
+
+        DisassembleStart "Transfers (status/control)"
+        WFS     R1
+        RFS     R1
+        WFC     R1
+        RFC     R1
+        DisassembleEnd
+
+        DisassembleStart "Comparisons"
+        CMF     F1, F2
+        CMFE    F1, F2
+        CMF     F1, #0.5
+        CMFE    F1, #0.5
+    ; negative forms
+        CNF     F1, F2
+        CNFE    F1, F2
+        CNF     F1, #0.5
+        CNFE    F1, #0.5
+        DisassembleEnd
+
+        Pull    "pc"
+
+
+
+disassemble_thumb SIGNATURE
+        Push    "lr"
+
+        DisassembleStart "Special",Thumb
+        DCW     &be03       ; bkpt #3
+        DCW     &df01       ; svc #1
+        DCW     &bf10       ; yield
+        DCW     &de2a       ; udf #42
+        DisassembleEnd
+
+        DisassembleStart "Branches",Thumb
+        DCW     &dd02       ; ble #+4
+        DCW     &e7ff       ; b #+-2
+        DCW     &47b8       ; blx r7
+        DCW     &b132       ; cbz r2, #+12
+        DCW     &bbbb       ; cbnz r3, #+110
+        DisassembleEnd
+
+        DisassembleStart "Load/Store",Thumb
+        DCW     &992c       ; ldr r1, [sp, #176]
+        DCW     &4a04       ; ldr r2, [pc, #16]
+        DCW     &88f3       ; ldrh r3, [r6, #6]
+        DCW     &5073       ; str r3, [r6, r1]
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic",Thumb
+        DCW     &407c       ; eor r4, r4, r7
+        DCW     &431f       ; orr r7, r7, r3
+        DCW     &372a       ; add r7, r7, #42
+        DCW     &1acd       ; sub r5, r1, r3
+        DCW     &1ef4       ; sub r4, r6, #3
+        DCW     &ad18       ; add r5, sp, #96
+        DCW     &449b       ; add sp, sp, r3
+        DCW     &4253       ; rsb r3, r2, #0
+        DisassembleEnd
+
+        DisassembleStart "Binary ops",Thumb
+        DCW     &4676       ; mov r6, lr
+        DCW     &2413       ; mov r4, #19
+        DCW     &242a       ; mov r4, #42
+        DCW     &b2b2       ; uxth r2, r6
+        DisassembleEnd
+
+        DisassembleStart "Arithmetic pc-relative",Thumb
+        DCW     &a110       ; adr r1, #+64
+        DisassembleEnd
+
+        DisassembleStart "Load/Store multiple",Thumb
+        DCW     &c124       ; stm r1, {r2,r5}
+        DCW     &b4ff       ; push {r0-r7}
+        DCW     &b5ff       ; push {r0-r7,lr}
+        DCW     &bcff       ; pop {r0-r7}
+        DCW     &bdff       ; pop {r0-r7,pc}
+        DisassembleEnd
+
+        DisassembleStart "Comparisons",Thumb
+        DCW     &42a2       ; cmp r2, r4
+        DCW     &4545       ; cmp r5, r8
+        DCW     &bf34       ; IT execution
+        DisassembleEnd
+
+        Pull    "pc"
+
+
+debugger_plus SIGNATURE
+        LDRB    r0, [r8], #1
+        TEQ     r0, #'f'
+        BEQ     debugger_flags
+        TEQ     r0, #'d'
+        BEQ     debugger_disassembleplus
+
+        MOV     pc, lr
+
+debugger_flags SIGNATURE
+        Push    "lr"
+        BL      get_hex
+        MOV     r2, r0
+        BL      get_hex
+        MOV     r1, r0
+        MOV     r0, r2
+        PrintMessage "Debugger_Flags BIC="
+        PrintHex r0
+        PrintMessage ", EOR="
+        PrintHex r1
+        SWI     OS_NewLine
+        SWI     Debugger_Flags
+        PrintMessage "  Old flags="
+        PrintHex r0
+        SWI     OS_NewLine
+        PrintMessage "  New flags="
+        PrintHex r1
+        SWI     OS_NewLine
+        Pull    "pc"
+
+
+; a<arch>,<sequence>,
+disassemble_arch SIGNATURE
+        Push    "lr"
+        BL      get_number
+        MOV     r7, r0
+; Now read a sequence of bytes as hex
+
+        PrintMessage "Debugger_DisassembleArch "
+        PrintInteger r7
+        SWI     OS_NewLine
+        PrintMessage "Input:"
+
+        ADR     r2, input_data
+10
+; first nibble (high)
+        LDRB    r0, [r8], #1
+        TEQ     r0, #','
+        BEQ     %FT20
+        CMP     r0, #32
+        BLS     %FT80
+        ORR     r0, r0, #32             ; make upper case into lower case
+        SUBS    r0, r0, #'0'
+        BMI     %FT80
+        CMP     r0, #10
+        BLO     %FT15
+        SUBS    r0, r0, #'a' - '0' - 10
+        BMI     %FT80
+        CMP     r0, #10
+        BLO     %FT15
+; second nibble (low)
+15
+        LDRB    r3, [r8], #1
+        CMP     r3, #32
+        BLS     %FT80
+        ORR     r3, r3, #32             ; make upper case into lower case
+        SUBS    r3, r3, #'0'
+        BMI     %FT80
+        CMP     r3, #10
+        BLO     %FT18
+        SUBS    r3, r3, #'a' - '0' - 10
+        BMI     %FT80
+        CMP     r3, #10
+        BLO     %FT18
+18
+        ORR     r0, r3, r0, LSL #4
+        STRB    r0, [r2], #1
+
+        SWI     OS_WriteI + ' '
+        PrintHex2 r0
+        B       %BT10
+
+; done with the sequence
+20
+        SWI     OS_NewLine
+
+        ADR     r1, input_data          ; r1-> input data
+        SUB     r2, r2, r1              ; r2 = size of input data
+        PrintMessage "Input size: "
+        PrintInteger r2
+        SWI     OS_NewLine
+
+        PrintLine "Get output buffer size..."
+
+        MOV     r0, r7                  ; r0 = architecture
+        MOV     r3, #&8000              ; address this came from
+        MOV     r4, #0                  ; ignored (as we read size of data)
+        MOV     r5, #0                  ; read size of data
+        MOV     r6, #-1                 ; flags (use default)
+        SWI     XDebugger_DisassembleArch
+        BVC     %FT70
+        LDR     r14, [r0]
+        EOR     r14, r14, #&E4
+        TEQ     r14, #&100              ; error &1E4 is buffer overflow
+        BNE     %FT75
+
+        RSB     r5, r5, #0
+        PrintMessage "Output size needed: "
+        PrintInteger r5
+        SWI     OS_NewLine
+
+        PrintLine "Disassemble..."
+
+        MOV     r0, r7
+        ADR     r4, output_data
+        SWI     Debugger_DisassembleArch
+
+        PrintLine "Disassembly:"
+        PrintMessage "        "
+        PrintString r4
+        SWI     OS_NewLine
+        SWI     OS_NewLine
+
+        PrintMessage "Remaining input bytes: "
+        PrintInteger r2
+        SWI     OS_NewLine
+        ADR     r0, input_data
+        SUB     r1, r1, r0
+        PrintMessage "Consumed input bytes:  "
+        PrintInteger r1
+        SWI     OS_NewLine
+
+        B       %FT90
+
+70
+        PrintLine "Should have got an error when reading the disassembly size"
+        B       %FT90
+
+75
+        CMP     r2, #0
+        BPL     %FT77
+        PrintMessage "Insufficient input data, need "
+        RSB     r2, r2, #0
+        PrintInteger r2
+        PrintLine " bytes"
+        PrintMessage "Error was: "
+        B       %FT78
+77
+        PrintMessage "Unexpected error: "
+78
+        PrintError
+        SWI     OS_NewLine
+        B       %FT90
+
+80
+        PrintLine "Debugger_DisassembleArch needs a sequence of hex values for input"
+
+90
+        Pull    "pc"
+
+; buffer for our disassembly data
+input_data  % 16
+output_data % 128
+
+        GET     s._args_common
+
+        END

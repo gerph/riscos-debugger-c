@@ -1,0 +1,2 @@
+Include: tests-debugger.txt
+Include: tests-debugger-swis.txt

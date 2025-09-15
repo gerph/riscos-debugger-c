@@ -302,15 +302,20 @@ const char *parse_value_or_reg(const char *args, param_t *params)
  Parameters:    args -> the command string (control terminated)
                 memory_params-> the structure to fill in
                 default_size = number of bytes to use if no size/end is given.
+                endp -> where to store the end of the parameters we reached (or NULL to ignore)
  Returns:       1 for success, 0 for failure
  ******************************************************************/
-int parse_memory_params(const char *args, memory_params_t *memory_params, int default_size)
+int parse_memory_params(const char *args, memory_params_t *memory_params, int default_size,
+                        const char **endp)
 {
     param_t base_param, other_param, third_param;
 
     args = parse_value_or_reg(args, &base_param);
     args = parse_value_or_reg(args, &other_param);
     args = parse_value_or_reg(args, &third_param);
+
+    if (endp != NULL)
+        *endp = args;
 
     if (base_param.invalid ||
         other_param.invalid ||

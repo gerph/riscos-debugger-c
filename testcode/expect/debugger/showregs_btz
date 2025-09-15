@@ -1,0 +1,23 @@
+Supervisor
+
+*go 8000
+Exception: Branch through zero
+  r0  = &0700MMMM, r1  = &00000000, r2  = &00000000, r3  = &00000000
+  r4  = &00000000, r5  = &00000000, r6  = &00000000, r7  = &00000000
+  r8  = &00000000, r9  = &00000000, r10 = &00000000, r11 = &00000000
+  r12 = &00000000, sp  = &00000000, lr  = &04107fe0, pc  = &00000000
+  CPSR= &00000010 : USR-32 ARM fi ae qvczn
+
+Error: Internal error: Branch through zero (Error number &80000005)
+*showregs
+Exception dump information for ARM (stored at &0700MMMM):
+
+r0  = &0700MMMM, r1  = &00000000, r2  = &00000000, r3  = &00000000
+r4  = &00000000, r5  = &00000000, r6  = &00000000, r7  = &00000000
+r8  = &00000000, r9  = &00000000, r10 = &00000000, r11 = &00000000
+r12 = &00000000, sp  = &00000000, lr  = &04107fe0, pc  = &00000000
+CPSR= &00000010 : USR-32 ARM fi ae qvczn
+
+Locations:
+  lr:  DA 'SVC Stack'  (area offset &7fe0)
+*quit

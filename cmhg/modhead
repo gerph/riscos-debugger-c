@@ -82,6 +82,7 @@ error-identifiers:  err_BreakNotFound("Breakpoint not found"),
                     err_NotSupported64("Debugger does not support breakpoints in RISC OS 64"),
                     err_NotSupportedPlus("Debugger does not support DebuggerPlus SWIs"),
                     err_UnsupportedArch("Debugger does not support the requested architecture"),
+                    err_NotEnoughInputData("Debugger_DisassembleArch was not supplied enough data to decode instructions"),
                     err_BufferOverflow(&1E4, "Buffer overflow")
 
 ; When the module is initialised, this routine will be entered. You should

@@ -41,7 +41,7 @@
 #endif
 
 /* Number of rows to dump in *Memory by default */
-#define MEMORY_DEFAULT_SIZE (40)
+#define MEMORY_DEFAULT_SIZE (16)
 
 /* Define this to debug this file */
 //#define DEBUG
@@ -157,8 +157,12 @@ _kernel_oserror *Cmd_Memory(const char *arg_string, int argc, int number,
 
     arg_string = parse_data_width(arg_string, &data_width, data_width);
 
-    success = parse_memory_params(arg_string, &memory_params, MEMORY_DEFAULT_SIZE * row_width);
+    success = parse_memory_params(arg_string, &memory_params, MEMORY_DEFAULT_SIZE * row_width, &arg_string);
     if (!success)
+    {
+        return err_CannotParseStarMemory;
+    }
+    if (arg_string && *arg_string >= ' ')
     {
         return err_CannotParseStarMemory;
     }
@@ -211,23 +215,26 @@ _kernel_oserror *Cmd_MemoryA(const char *arg_string, int argc, int number,
         }
     }
 
+    if (arg_string != NULL && *arg_string >= ' ')
+        return err_BadSyntaxMemoryA;
+
     if (!interactive)
     {
         /* Write the value right now */
         if (data_width == 1)
         {
             *(uint8_t*)address = value;
-            printf("Wrote byte &%lx to &%lx\n", value & 255, address);
+            printf("Wrote byte &%02lx to &%08lx\n", value & 255, address);
         }
         else if (data_width == 2)
         {
             *(uint16_t*)address = value;
-            printf("Wrote half-word &%lx to &%lx\n", value & 0xFFFF, address);
+            printf("Wrote half-word &%04lx to &%08lx\n", value & 0xFFFF, address);
         }
         else if (data_width == 4)
         {
             *(uint32_t*)address = value;
-            printf("Wrote word &%lx to &%lx\n", value, address);
+            printf("Wrote word &%08lx to &%08lx\n", value, address);
         }
     }
     else
@@ -330,8 +337,12 @@ _kernel_oserror *Cmd_MemoryI(const char *arg_string, int argc, int number,
     arg_string = parse_architecture(arg_string, &parsed_arch);
 
     inst_width = parsed_arch.inst_width_max;
-    success = parse_memory_params(arg_string, &memory_params, MEMORYI_DEFAULT_SIZE * inst_width);
+    success = parse_memory_params(arg_string, &memory_params, MEMORYI_DEFAULT_SIZE * inst_width, &arg_string);
     if (!success)
+    {
+        return err_CannotParseStarMemoryI;
+    }
+    if (arg_string && *arg_string >= ' ')
     {
         return err_CannotParseStarMemoryI;
     }
@@ -374,8 +385,12 @@ _kernel_oserror *Cmd_DumpI(const char *arg_string, int argc, int number,
 
     inst_width = parsed_arch.inst_width_max;
 
-    success = parse_memory_params(arg_string, &memory_params, 0x80000000);
+    success = parse_memory_params(arg_string, &memory_params, 0x80000000, &arg_string);
     if (!success)
+    {
+        return err_CannotParseStarDumpI;
+    }
+    if (arg_string && *arg_string >= ' ')
     {
         return err_CannotParseStarDumpI;
     }
@@ -707,8 +722,9 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
 
         if (datalen < wordsize)
         {
+            /* They didn't supply enough data */
             r->r[2] = -wordsize;
-            return err_BufferOverflow;
+            return err_NotEnoughInputData;
         }
 
         str = parsed_arch.disassemble(data, datalen, addr);
@@ -716,6 +732,7 @@ _kernel_oserror *SWI_DisassembleArch(int number, _kernel_swi_regs *r, void *pw)
         needed = strlen(str) + 1;
         if (outputlen < needed)
         {
+            /* They didn't supply enough output buffer */
             r->r[5] = -needed;
             return err_BufferOverflow;
         }

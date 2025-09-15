@@ -1,0 +1,267 @@
+Test: Move
+    MOV     r0, r0
+    MOV     r1, r2
+    MOV     r1, r2, LSL #5
+    MOV     r1, r2, LSL r3
+    MOV     r1, r2, LSR #5
+    MOV     r1, r2, LSR r3
+    MOV     r1, r2, ASR #5
+    MOV     r1, r2, ASR r3
+    MOV     r1, r2, ROR #5
+    MOV     r1, r2, ROR r3
+    MOV     pc, lr
+    MOV     r1, #7
+    MOV     r1, #296                  ; #&128
+    MOV     r1, #&80000               ; #524288 = 128<<12 = bit 19
+    MVN     r1, r2
+    MVN     r1, r2, LSL #5
+    MVN     r1, r2, LSL r3
+    MVN     r1, #6                    ; #-7
+    MVN     r1, #288                  ; #-289
+    MOVS    r1, #17
+    MOVS    r1, r2, LSL #5
+
+Test: Arithmetic (register)
+    ADD     r1, r2, r3
+    SUB     r1, r2, r3
+    ADC     r1, r2, r3
+    SBC     r1, r2, r3
+    RSB     r1, r2, r3
+    RSC     r1, r2, r3
+    ADDS    r1, r2, r3
+    SUBS    r1, r2, r3
+    ADCS    r1, r2, r3
+    SBCS    r1, r2, r3
+    RSBS    r1, r2, r3
+    RSCS    r1, r2, r3
+
+Test: Arithmetic (constant)
+    ADD     r1, r2, #1
+    ADD     r1, r2, #584              ; #&248
+    ADD     r1, r2, #&9900            ; #39168 = 153<<8
+    ADD     r1, r2, #&88000           ; #557056 = 136<<12
+    ADD     r1, r2, #&80000           ; #524288 = 128<<12 = bit 19
+    ADD     r1, r2, #&770000          ; #7798784 = 119<<16
+    ADD     r1, r2, #&6600000         ; #106954752 = 102<<20
+    ADD     r1, r2, #&55000000        ; #1426063360 = 85<<24
+    ADD     r1, r2, #&ee000000        ; #3992977408 = 238<<24
+    ADD     r1, r2, #&80000001        ; #2147483649
+    ADD     r1, r2, #68               ; #'D'
+
+Test: Multiply
+    MUL     r1, r2, r3
+    MLA     r1, r2, r3, r4
+    SMULL   r1, r2, r3, r4
+    SMULLS  r1, r2, r3, r4
+    SMULTB  r1, r2, r3
+    SMLAL   r1, r2, r3, r4
+
+Test: Logical (register)
+    ORR     r1, r2, r3
+    EOR     r1, r2, r3
+    AND     r1, r2, r3
+    BIC     r1, r2, r3
+
+Test: Logical (register, shifts)
+    ORR     r1, r2, r3, LSL r4
+    ORR     r1, r2, r3, LSR r4
+    ORR     r1, r2, r3, ASR r4
+    ORR     r1, r2, r3, ROR r4
+    ORR     r1, r2, r3, LSL #7
+    ORR     r1, r2, r3, LSR #7
+    ORR     r1, r2, r3, ASR #7
+    ORR     r1, r2, r3, ROR #7
+    ORR     r1, r2, r3, RRX
+
+Test: Logical (constant)
+    ORR     r1, r2, #1
+    ORR     r1, r2, #584              ; #&248
+    ORR     r1, r2, #&9900            ; #39168 = 153<<8
+    ORR     r1, r2, #&88000           ; #557056 = 136<<12
+    ORR     r1, r2, #&80000           ; #524288 = 128<<12 = bit 19
+    ORR     r1, r2, #&770000          ; #7798784 = 119<<16
+    ORR     r1, r2, #&6600000         ; #106954752 = 102<<20
+    ORR     r1, r2, #&55000000        ; #1426063360 = 85<<24
+    ORR     r1, r2, #&ee000000        ; #3992977408 = 238<<24
+    ORR     r1, r2, #&80000001        ; #2147483649
+    ORR     r1, r2, #68               ; #'D'
+
+Test: Arithmetic pc-relative
+    ADR     r1, &00008004
+    ADR     r1, &00007ffc
+    ADD     pc, pc, r2, LSL #2
+    ADRNE   r0, &0000804c
+
+Test: Load/Store indexed
+    LDR     r1, [r2]
+    STR     r1, [r2]
+    LDRB    r1, [r2, #1]
+    STRB    r1, [r2, #1]
+    LDR     r1, [r2, #4]
+    LDR     r1, [r2, #552]            ; #&228
+    LDR     r1, [r2, #-4]
+    LDR     r1, [r2, #4]!
+    LDR     r1, [r2, #-4]!
+    LDR     r1, [r2, r3]
+    LDR     r1, [r2, -r3]
+    LDR     r1, [r2, r3, LSL #2]
+    LDR     r1, [r2, r3, LSR #2]
+
+Test: Load/Store post-indexed
+    LDRB    r1, [r2], #1
+    LDR     r1, [r2], #4
+    LDR     r1, [r2], #-4
+    LDR     r1, [r2], r3
+    LDR     r1, [r2], -r3
+    LDR     r1, [r2], r3, LSL #2
+    LDR     r1, [r2], r3, LSR #2
+
+Test: Load/Store pc-relative
+    LDR     r1, &00008004
+    LDR     r1, &00007ffc
+    LDR     r1, [pc, r2]
+
+Test: SWI
+    SWI     OS_WriteC
+    SWI     OS_WriteI+"a"
+
+Test: Conditions
+    MOVEQ   r1, r2
+    MOVNE   r1, r2
+    MOVCS   r1, r2
+    MOVCC   r1, r2
+    MOVMI   r1, r2
+    MOVPL   r1, r2
+    MOVVS   r1, r2
+    MOVVC   r1, r2
+    MOVHI   r1, r2
+    MOVLS   r1, r2
+    MOVGE   r1, r2
+    MOVLT   r1, r2
+    MOVGT   r1, r2
+    MOVLE   r1, r2
+    MOV     r1, r2
+    Undefined instruction
+
+Test: Conditions (branches)
+    BEQ     &00008000
+    BNE     &00008000
+    BCS     &00008000
+    BCC     &00008000
+    BMI     &00008000
+    BPL     &00008000
+    BVS     &00008000
+    BVC     &00008000
+    BHI     &00008000
+    BLS     &00008000
+    BGE     &00008000
+    BLT     &00008000
+    BGT     &00008000
+    BLE     &00008000
+    B       &00008000
+    BLX     &00008000
+
+Test: Conditions (branch link)
+    BLEQ    &00008000
+    BLNE    &00008000
+    BLCS    &00008000
+    BLCC    &00008000
+    BLMI    &00008000
+    BLPL    &00008000
+    BLVS    &00008000
+    BLVC    &00008000
+    BLHI    &00008000
+    BLLS    &00008000
+    BLGE    &00008000
+    BLLT    &00008000
+    BLGT    &00008000
+    BLLE    &00008000
+    BL      &00008000
+    BLX     &00008002
+
+Test: Comparisons
+    CMP     r1, r2
+    CMP     r1, #7
+    CMP     r1, r2, LSL #2
+    CMP     r1, r2, LSL r3
+    CMN     r1, r2
+    CMN     r1, #7                    ; #-7
+    CMN     r1, r2, LSL #2
+    CMN     r1, r2, LSL r3
+    TEQ     r1, r2
+    TEQ     r1, #7
+    TEQ     r1, r2, LSL #2
+    TEQ     r1, r2, LSL r3
+    TST     r1, r2
+    TST     r1, #7
+    TST     r1, r2, LSL #2
+    TST     r1, r2, LSL r3
+
+Test: Comparisons (special)
+    CMP     pc, #3
+    CMN     pc, #3                    ; #-3
+    TEQ     pc, #3
+    TST     pc, #3
+    CMPP    pc, #3
+    CMNP    pc, #3                    ; #-3
+    TEQP    pc, #3
+    TSTP    pc, #3
+
+Test: Status register
+    MRS     r1, cpsr_cxsf
+    MRS     r1, spsr_cxsf
+    MSR     spsr_cf, r1
+    MSR     cpsr_cf, r1
+    MSR     cpsr_cxsf, r1
+    MSR     cpsr_c, r1
+    MSR     cpsr_f, r1
+    MSR     cpsr_c, #19
+    MSR     cpsr_c, #16
+    MSR     cpsr_c, #0
+    MSR     cpsr_cxsf, #19
+    MSR     cpsr_f, #&10000000
+    MSR     cpsr_f, #&20000000
+    MSR     cpsr_f, #&40000000
+    MSR     cpsr_f, #&80000000
+
+Test: Load/Store multiple
+    LDMIA   r0, {r1-r3}
+    LDMIA   r0!, {r1-r3}
+    LDMIB   r0, {r2,r4,r5}
+    LDMDA   r0, {r7,r9,r11}
+    LDMDB   r0, {r3,r4,lr}
+    STMIA   r0, {r1-r3}
+    STMIA   r0!, {r1-r3}
+    STMIB   r0, {r2,r4,r5}
+    STMDA   r0, {r7,r9,r11}
+    STMDB   r0, {r3,r4,lr}
+
+Test: Load/Store multiple conditional
+    LDMNEIA r0, {r1-r3}
+    LDMIBNE r0, {r2,r4,r5}
+    LDMDANE r0, {r7,r9,r11}
+    LDMDBNE r0, {r3,r4,lr}
+    STMNEIA r0, {r1-r3}
+    STMIBNE r0, {r2,r4,r5}
+    STMDANE r0, {r7,r9,r11}
+    STMDBNE r0, {r3,r4,lr}
+
+Test: Load/Store multiple (sp)
+    POP     {r1-r3}
+    LDMIB   sp!, {r2,r4,r5}
+    LDMDA   sp!, {r7,r9,r11}
+    LDMDB   sp!, {r3,r4,lr}
+    STMIA   sp!, {r1-r3}
+    STMIB   sp!, {r2,r4,r5}
+    STMDA   sp!, {r7,r9,r11}
+    PUSH    {r3,r4,lr}
+
+Test: Low values
+    ANDEQ   r0, r0, r0
+    ANDEQ   r0, r0, r4, RRX
+    ANDEQ   r0, r0, r0, ASR #8
+
+Test: Undefined instruction
+    Undefined instruction
+    ISB     #15
+

@@ -1,0 +1,5 @@
+Debugger_DisassembleArch 99
+Input: &a0 &00 &00 &10
+Input size: 4
+Get output buffer size...
+Unexpected error: [&0000080d] Debugger does not support the requested architecture

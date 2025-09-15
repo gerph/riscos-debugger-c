@@ -48,7 +48,7 @@ jobs:
       - name: Obtain prerequisite build tool
         run: |
           # Fetch the build client
-          curl -s -L -o riscos-build-online https://github.com/gerph/robuild-client/releases/download/v0.05/riscos-build-online && chmod +x riscos-build-online
+          curl -s -L -o riscos-build-online https://github.com/gerph/robuild-client/releases/download/v0.07/riscos-build-online && chmod +x riscos-build-online
 
       - name: Obtain RISC OS archive management
         run: |
@@ -57,7 +57,7 @@ jobs:
 
       - name: Obtain the Darm library
         run: |
-          curl -s -L -o libdarm.zip https://github.com/gerph/darm/releases/download/v0.07/Darm-0.07.zip
+          curl -s -L -o libdarm.zip https://github.com/gerph/darm/releases/download/v0.09/Darm-0.09.zip
           python3 -m rozipfile --verbose --extract libdarm.zip
           rm libdarm.zip
           # We now have Lib/DARM with h and o directories in
@@ -76,6 +76,20 @@ jobs:
 
           # Send the archive file to build service
           ./riscos-build-online -i /tmp/source-archive.zip -a off -t 600 -o /tmp/built
+
+      - name: Test the module
+        run: |
+          # Extract the Debugger we built
+          unzip /tmp/built,a91
+
+          # Put it in the module directory so we can use it
+          mkdir rm32
+          mv Debugger rm32/Debugger,ffa
+
+          # And run the tests!
+          cp riscos-build-online testcode/riscos-build-online
+          cd testcode
+          make tests
 
       - name: Give the output a versioned name
         id: version

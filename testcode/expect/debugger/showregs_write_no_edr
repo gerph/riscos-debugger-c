@@ -1,0 +1,32 @@
+Supervisor
+
+*go 8000
+Exception: Data abort
+  r0  = &88000000, r1  = &00000000, r2  = &00000000, r3  = &00000000
+  r4  = &00000000, r5  = &00000000, r6  = &00000000, r7  = &00000000
+  r8  = &00000000, r9  = &00000000, r10 = &00000000, r11 = &00000000
+  r12 = &00000000, sp  = &00000000, lr  = &04107fe0, pc  = &00008000
+  CPSR= &00000010 : USR-32 ARM fi ae qvczn
+
+Error: Internal error: Abort on data transfer at &00008000 (DA 'Application Space') (write at &88000000, unknown memory) (Error number &80000002)
+*showregs
+Exception dump information for ARM (stored at &0700035c):
+
+r0  = &88000000, r1  = &00000000, r2  = &00000000, r3  = &00000000
+r4  = &00000000, r5  = &00000000, r6  = &00000000, r7  = &00000000
+r8  = &00000000, r9  = &00000000, r10 = &00000000, r11 = &00000000
+r12 = &00000000, sp  = &00000000, lr  = &04107fe0, pc  = &00008000
+CPSR= &00000010 : USR-32 ARM fi ae qvczn
+
+Locations:
+  lr:  DA 'SVC Stack'  (area offset &7fe0)
+  pc:  DA 'Application Space'
+
+Disassembly before pc (from current memory):
+  &00008000 > &e3a00322 > MOV     r0, #&88000000            ; #-2013265920 = 136<<24
+
+Last abort:
+  Fault:  &88000000
+  DFSR:   &00000806  (Write, MMU access second level)
+  DFAR:   &88000000
+*quit

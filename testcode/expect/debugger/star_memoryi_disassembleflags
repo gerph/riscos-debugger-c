@@ -1,0 +1,21 @@
+03800404 : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of Start code
+03800408 : ...@ : 40000000 : ANDMI   A1, A1, A1                ; Offset of Initialise code
+0380040C : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of Finalise code
+03800410 : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of Service code
+03800414 : <... : 0000003C : ANDEQ   A1, A1, IP, LSR A1        ; Offset of Title string
+03800418 : L... : 0000004C : ANDEQ   A1, A1, IP, ASR #32       ; Offset of Help message string
+0380041C : .... : 000000B8 : STRHEQ  A1, [A1], -V5             ; Offset of Commands table
+03800420 : .... : 00000000 : ANDEQ   A1, A1, A1                ; SWI base
+03800424 : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of SWI handler code
+03800428 : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of SWI table
+0380042C : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of SWI decoder string
+03800430 : .... : 00000000 : ANDEQ   A1, A1, A1                ; Offset of Messages filename string
+03800434 : 4... : 00000034 : ANDEQ   A1, A1, V1, LSR A1        ; Offset of Module flags
+03800438 : .... : 000000F2 : STRDEQ  A1, A2, [A1], -A3         ; Module flags
+0380043C : .... : E1A0F00E : MOV     PC, LR                    ; Entry Command GOS
+03800440 : Util : 6C697455 : STCLVS  p4, c7, [V6], #-&154      ; Title string
+03800444 : ityM : 4D797469 : LDCLMI  p4, c7, [V6, #-&1a4]!
+03800448 : odul : 6C75646F : LDCLVS  p4, c6, [V2], #-&1bc
+0380044C : e... : 00000065 : ANDEQ   A1, A1, V2, RRX
+03800450 : MOS  : 20534F4D : SUBSHS  V1, A4, SP, ASR #30       ; Help message string
+03800454 : Util : 6C697455 : STCLVS  p4, c7, [V6], #-&154

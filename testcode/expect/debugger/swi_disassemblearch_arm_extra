@@ -1,0 +1,11 @@
+Debugger_DisassembleArch 0
+Input: &22 &03 &a0 &e3 &12 &34
+Input size: 6
+Get output buffer size...
+Output size needed: 58
+Disassemble...
+Disassembly:
+        MOV     r0, #&88000000            ; #2281701376 = 136<<24
+
+Remaining input bytes: 2
+Consumed input bytes:  4

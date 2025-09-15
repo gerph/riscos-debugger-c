@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
                 thumb = (parsed_arch.arch == arch_thumb) ? 1 : 0;
             }
 
-            success = parse_memory_params(arg_string, &memory_params, 0x8000000);
+            success = parse_memory_params(arg_string, &memory_params, 0x8000000, NULL);
             if (!success)
             {
                 printf("Failed\n");

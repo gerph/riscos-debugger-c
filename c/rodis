@@ -158,10 +158,23 @@ static char *convert_hex_0x_to_ampersand(char *str)
 const char *lookup_swi(uint32_t swinum)
 {
     static char buffer[128];
+    char *result;
     _kernel_oserror *err;
     err = _swix(OS_SWINumberToString, _INR(0, 2), swinum, buffer, sizeof(buffer));
     if (err)
         return NULL;
+
+    result = buffer;
+    if (*result == 'X')
+        result++;
+    if (result[0] == 'U' &&
+        result[1] == 's' &&
+        result[2] == 'e' &&
+        result[3] == 'r' &&
+        result[4] == '\0')
+    {
+        sprintf(buffer, "&%X", swinum);
+    }
     return buffer;
 }
 
@@ -259,8 +272,11 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             hashplus = strstr(newargs, "#+");
             if (hashplus)
             {
-                sprintf(hashplus, "&%08x", d.U ? address + (thumb ? 4 : 8) + d.imm
-                                               : address + (thumb ? 4 : 8) - d.imm);
+                uint32_t rounded = address & ~3;
+                // https://developer.arm.com/documentation/ddi0403/d/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-ARMv7-M-Thumb-instructions/ADR?lang=en
+                // Address alignment is always PC rounded down.
+                sprintf(hashplus, "&%08x", d.U ? rounded + (thumb ? 4 : 8) + d.imm
+                                               : rounded + (thumb ? 4 : 8) - d.imm);
             }
             args = newargs;
         }
@@ -274,8 +290,12 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             bracketpc = strstr(newargs, "[pc");
             if (bracketpc)
             {
-                sprintf(bracketpc, "&%08lx", d.U ? address + (thumb ? 4 : 8) + d.imm
-                                                 : address + (thumb ? 4 : 8) - d.imm);
+                uint32_t rounded = address & ~3;
+                // https://developer.arm.com/documentation/ddi0403/d/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-ARMv7-M-Thumb-instructions/LDR--literal-?lang=en
+                // https://developer.arm.com/documentation/ddi0403/d/Application-Level-Architecture/Instruction-Details/Alphabetical-list-of-ARMv7-M-Thumb-instructions/LDRB--literal-?lang=en
+                // Address is always rounded to a word for both LDR and LDRB
+                sprintf(bracketpc, "&%08lx", d.U ? rounded + (thumb ? 4 : 8) + d.imm
+                                                 : rounded + (thumb ? 4 : 8) - d.imm);
             }
             args = newargs;
         }
@@ -291,9 +311,9 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             {
                 char *write = &newargs[lastcomma + 2 - args]; /* Points to the '#' in the output */
                 strcpy(newargs, args);
-                *write++ = mnemonic[0];     /* First char of mnemonic */
-                *write++ = mnemonic[1];
-                *write++ = mnemonic[2];
+                *write++ = mnemonic[0] & ~32;     /* First char of mnemonic (capitalised) */
+                *write++ = mnemonic[1] & ~32;
+                *write++ = mnemonic[2] & ~32;
                 strcpy(write, lastcomma + 1);   /* Copy the ' #3' (or register) over */
                 strncpy(mnemonic, "MOV", 3);
                 args = newargs;
@@ -327,7 +347,9 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
 #define MNEMONIC_MATCH(with) (mnemonic[0] == with[0] && mnemonic[1] == with[1] && mnemonic[2] == with[2])
 
         if ((MNEMONIC_MATCH("MOV") ||
+             MNEMONIC_MATCH("MVN") ||
              MNEMONIC_MATCH("CMP") ||
+             MNEMONIC_MATCH("CMN") ||
              MNEMONIC_MATCH("TEQ") ||
              MNEMONIC_MATCH("TST") ||
              MNEMONIC_MATCH("ADD") ||
@@ -339,27 +361,70 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
              MNEMONIC_MATCH("ORR") ||
              MNEMONIC_MATCH("AND") ||
              MNEMONIC_MATCH("BIC") ||
-             MNEMONIC_MATCH("EOR"))
-            && strchr(args, '#') != NULL)
+             MNEMONIC_MATCH("EOR") ||
+             MNEMONIC_MATCH("LDR") ||
+             MNEMONIC_MATCH("STR")))
         {
-            comment = decode_immediate(d.imm, it_positive);
-
-            /* Darm produces 'rrx #0' which isn't correct - RRX is encoded as ROR 0. */
+            // Fix up the ROR, ROL, LSL, LSR, ASR to be capitalised
+            char *shift = strstr(args, "ro");
+            if (!shift)
             {
+                shift = strstr(args, "ls");
+            }
+            if (shift)
+            {
+                if (shift[2] == 'r' || shift[2] == 'l')
+                {
+                    shift[0] &= ~32;
+                    shift[1] &= ~32;
+                    shift[2] &= ~32;
+                }
+            }
+            else
+            {
+                shift = strstr(args, "asr");
+                if (shift)
+                {
+                    shift[0] &= ~32;
+                    shift[1] &= ~32;
+                    shift[2] &= ~32;
+                }
+            }
+
+            if (mnemonic[1] == 'D' &&
+                mnemonic[2] == 'R' &&
+                d.Rn == PC) /* LDR and STR instructions with a PC relative operation */
+            {
+                /* No comment about the offset */
+            }
+            else if (d.I == B_SET)
+            {
+                comment = decode_immediate(d.imm, it_positive);
+            }
+            else if (d.shift_type != S_INVLD && strchr(args, '#') != NULL)
+            {
+                /* Darm produces 'rrx #0' which isn't correct - RRX is encoded as ROR 0. */
                 char *rrx = strstr(args, "rrx ");
                 if (rrx)
+                {
                     rrx[3] = '\0';
+                    // And capitalise
+                    rrx[0] &= ~32;
+                    rrx[1] &= ~32;
+                    rrx[2] &= ~32;
+                }
             }
         }
 
-        if ((MNEMONIC_MATCH("MVN") ||
+        if (d.I == B_SET &&
+            (MNEMONIC_MATCH("MVN") ||
              MNEMONIC_MATCH("CMN"))
             && strchr(args, '#') != NULL)
             comment = decode_immediate(d.imm, mnemonic[0] == 'M' ? it_negated : it_negative);
 
         if (comment)
         {
-            sprintf(buffer, "%-8s%-24s; %s", mnemonic, args, comment);
+            sprintf(buffer, "%-8s%-26s; %s", mnemonic, args, comment);
         }
         else
         {
@@ -423,6 +488,8 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
         convert_hex_0x_to_ampersand(buffer);
         out = &buffer[strlen(buffer)];
 
+        if (ad->instr_id != AD_INSTR_ADR &&
+            ad->instr_id != AD_INSTR_ADRP)
         {
             char *com = comment;
             int i;
@@ -528,10 +595,19 @@ const char *disassemble_armadillo(uint32_t word, uint32_t address)
  ******************************************************************/
 const char *disassemble_memory_arm32(uint8_t *data, int datalen, uint32_t address)
 {
-    if (datalen != 4)
+    uint32_t word;
+    if (datalen < 4)
         return "Invalid length";
 
-    return disassemble_darm(*(uint32_t*)data, address, 0); /* FIXME: Assumes data is aligned */
+    if ((((uint32_t)data) & 3) == 0)
+        word = *(uint32_t*)data;
+    else
+        word = (data[0] << 0) |
+               (data[1] << 8) |
+               (data[2] << 16) |
+               (data[3] << 24);
+
+    return disassemble_darm(word, address, 0);
 }
 
 
@@ -545,10 +621,17 @@ const char *disassemble_memory_arm32(uint8_t *data, int datalen, uint32_t addres
  ******************************************************************/
 const char *disassemble_memory_thumb(uint8_t *data, int datalen, uint32_t address)
 {
-    if (datalen != 2)
+    uint32_t word;
+    if (datalen < 2)
         return "Invalid length";
 
-    return disassemble_darm(*(uint16_t*)data, address, 1); /* FIXME: Assumes data is aligned */
+    if ((((uint32_t)data) & 1) == 0)
+        word = *(uint16_t*)data;
+    else
+        word = (data[0] << 0) |
+               (data[1] << 8);
+
+    return disassemble_darm(word, address, 1);
 }
 
 
@@ -562,10 +645,19 @@ const char *disassemble_memory_thumb(uint8_t *data, int datalen, uint32_t addres
  ******************************************************************/
 const char *disassemble_memory_arm64(uint8_t *data, int datalen, uint32_t address)
 {
-    if (datalen != 4)
+    uint32_t word;
+    if (datalen < 4)
         return "Invalid length";
 
-    return disassemble_armadillo(*(uint32_t*)data, address); /* FIXME: Assumes data is aligned */
+    if ((((uint32_t)data) & 3) == 0)
+        word = *(uint32_t*)data;
+    else
+        word = (data[0] << 0) |
+               (data[1] << 8) |
+               (data[2] << 16) |
+               (data[3] << 24);
+
+    return disassemble_armadillo(word, address);
 }
 
 

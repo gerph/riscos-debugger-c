@@ -59,12 +59,10 @@ endif
 # Allow snprintf to be used
 CLIBTYPE   = generic
 
+OPTIMISE = size
+
 
 include CModule
-
-ifeq (${BUILD64},1)
-CFLAGS64   += -Os
-endif
 
 # Additional dependencies
 $(OZDIR).veneer: h.modhead

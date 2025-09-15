@@ -1,0 +1,11 @@
+Debugger_DisassembleArch 1
+Input: &a0 &00 &00 &10
+Input size: 4
+Get output buffer size...
+Output size needed: 18
+Disassemble...
+Disassembly:
+        ADR     x0, &8014
+
+Remaining input bytes: 0
+Consumed input bytes:  4

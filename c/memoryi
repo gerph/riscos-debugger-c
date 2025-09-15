@@ -13,6 +13,19 @@
 #include "memoryi.h"
 #include "rodis.h"
 
+/* Define this to omit the top-bit set (0x80+) from being printed */
+#define HIDE_TOP_BIT_CHARACTERS
+
+/* Define this to debug this file */
+//#define DEBUG
+
+
+#ifdef DEBUG
+#define dprintf if (1) printf
+#else
+#define dprintf if (0) printf
+#endif
+
 
 int get_filetype(const char *filename)
 {
@@ -90,10 +103,11 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
                                              annotator_f annotator)
 {
     /* We write out out disassembly as:
-            ADDR : WORD : text : disassembly[ ; annotation]
+            ADDR : text : WORD : disassembly[ ; annotation]
      */
     uint32_t word = 0;
     uint32_t address = 0;
+    int instsize = arch->inst_width_max; /* FIXME: Probably only works if the min and max are the same */
 
     if (start < address)
     {
@@ -109,17 +123,14 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
         address = start;
     }
 
+    address = address & ~(instsize-1); /* Assumes instruction size is a multiple of 2 */
+
     while (address < end)
     {
-        int instsize = arch->inst_width_max; /* FIXME: Probably only works if the min and max are the same */
         if (accessor->read_block(accessor, address, (uint8_t*)&word, instsize) != instsize)
             break;
 
-        printf("%08lx : ", address);
-        if (instsize == 2)
-            printf("%04lx : ", word);
-        else
-            printf("%08lx : ", word);
+        printf("%08lX : ", address);
 
         /* Write out the textual form of the word */
         {
@@ -131,10 +142,19 @@ static disassemble_error_t disassemble_stuff(data_accessor_t *accessor, parsed_a
                     value = '.';
                 else if (value == 127)
                     value = '.';
+#ifdef HIDE_TOP_BIT_CHARACTERS
+                else if (value >= 128)
+                    value = '.';
+#endif
                 printf("%c", value);
             }
         }
         printf(" : ");
+
+        if (instsize == 2)
+            printf("%04lX : ", word);
+        else
+            printf("%08lX : ", word);
 
         {
             const char *dis = arch->disassemble((uint8_t*)&word, instsize, address);
@@ -200,14 +220,50 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
         int row_size = 16;
         uint8_t data[16];
         int data_read;
-        data_read = accessor->read_block(accessor, address, (uint8_t*)&data, row_size);
+        int words_read;
+        int left_to_read = end - address;
+        uint32_t rowstart = address;
+        int gap;
+        int words_gap;
+        int to_read = row_size;
+
+        /* Work out the number of bytes we need to skip for row start */
+        rowstart = address & ~(row_size-1);
+        gap = (address & (row_size-1));
+        if (gap != 0)
+        {
+            memset(data, 0, sizeof(data));
+            to_read = row_size - gap;
+        }
+        words_gap = (gap & ~(data_width-1));
+
+        if (left_to_read < to_read)
+        {
+            /* Ensure that the output data is zero'd if we would overrun */
+            to_read = left_to_read;
+            memset(data, 0, sizeof(data));
+        }
+
+        data_read = accessor->read_block(accessor, address, (uint8_t*)&data[gap], to_read);
         if (data_read == 0)
             break;
 
-        printf("%08lx : ", address);
+        if (data_read < row_size)
+        {
+            /* Round up the amount we will print */
+            words_read = (data_read + (data_width - 1)) & ~(data_width -1);
+        }
+        else
+        {
+            words_read = data_read;
+        }
+
+        dprintf("Row start &%08x, gap = &%x, words_gap = &%x, to_read = &%x, data_read = &%x, words_read = &%x\n", rowstart, gap, words_gap, to_read, data_read, words_read);
+
+        printf("%08lX : ", rowstart);
         for (offset=0; offset < row_size; offset+=data_width)
         {
-            if (offset + data_width > data_read)
+            if (offset >= words_gap + words_read || offset < words_gap)
             {
                 printf("%*s ", data_width * 2, "");
             }
@@ -218,7 +274,7 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
                     case 2:
                         {
                             uint16_t *itemdata = (uint16_t*)(&data[offset]);
-                            printf("%04x ", *itemdata);
+                            printf("%04X ", *itemdata);
                         }
                         break;
 
@@ -226,14 +282,14 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
                     case 1:
                         {
                             uint8_t *itemdata = (uint8_t*)(&data[offset]);
-                            printf("%02x ", *itemdata);
+                            printf("%02X ", *itemdata);
                         }
                         break;
 
                     case 4:
                         {
                             uint32_t *itemdata = (uint32_t*)(&data[offset]);
-                            printf("%08lx ", *itemdata);
+                            printf("%08lX ", *itemdata);
                         }
                         break;
                 }
@@ -244,7 +300,7 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
         /* Write out the textual form of the word */
         for (offset=0; offset<row_size; offset++)
         {
-            if (offset > data_read)
+            if (offset >= gap + data_read || offset < gap)
             {
                 printf(" ");
             }
@@ -255,13 +311,17 @@ disassemble_error_t dump_stuff(data_accessor_t *accessor, int data_width,
                     value = '.';
                 else if (value == 127)
                     value = '.';
+#ifdef HIDE_TOP_BIT_CHARACTERS
+                else if (value >= 128)
+                    value = '.';
+#endif
                 printf("%c", value);
             }
         }
 
         printf("\n");
 
-        address += row_size;
+        address = rowstart + row_size;
 
         if (is_escape_pressed())
         {
