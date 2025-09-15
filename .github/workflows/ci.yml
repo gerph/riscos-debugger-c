@@ -57,7 +57,7 @@ jobs:
 
       - name: Obtain the Darm library
         run: |
-          curl -s -L -o libdarm.zip https://github.com/gerph/darm/releases/download/v0.08/Darm-0.08.zip
+          curl -s -L -o libdarm.zip https://github.com/gerph/darm/releases/download/v0.09/Darm-0.09.zip
           python3 -m rozipfile --verbose --extract libdarm.zip
           rm libdarm.zip
           # We now have Lib/DARM with h and o directories in
