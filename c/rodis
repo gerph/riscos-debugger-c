@@ -311,9 +311,9 @@ const char *disassemble_darm(uint32_t word, uint32_t address, int thumb)
             {
                 char *write = &newargs[lastcomma + 2 - args]; /* Points to the '#' in the output */
                 strcpy(newargs, args);
-                *write++ = mnemonic[0];     /* First char of mnemonic */
-                *write++ = mnemonic[1];
-                *write++ = mnemonic[2];
+                *write++ = mnemonic[0] & ~32;     /* First char of mnemonic (capitalised) */
+                *write++ = mnemonic[1] & ~32;
+                *write++ = mnemonic[2] & ~32;
                 strcpy(write, lastcomma + 1);   /* Copy the ' #3' (or register) over */
                 strncpy(mnemonic, "MOV", 3);
                 args = newargs;
