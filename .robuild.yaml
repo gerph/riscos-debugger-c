@@ -1,7 +1,7 @@
 %YAML 1.0
 ---
 
-# Example .robuild.yml file
+# RISC OS build file to execute on https://build.riscos.online/
 
 # Source is optional (NYI), and should be a URL to source the content from
 #source: <url>
@@ -15,6 +15,8 @@ jobs:
     env:
       "Sys$Environment": ROBuild
       "BUILD32": 1
+
+      # Faster building using the host toolchain
       "Alias$AMU": "HostAMU %*0"
 
     # Directory to change to before running script
@@ -39,15 +41,32 @@ jobs:
       - echo *** Run the DisFile tool
       - /aif32.DisFile hello_world
 
-      - echo *** Build the module
-      - amu -f MakefileModule
+      # Export our headers and libraries
+      - echo
+      - echo *** Export the headers or libs ***
+      - amu -f MakefileModule export
 
-      - echo *** Export the built versions
-      - cdir Artifacts
-      - copy rm32.Debugger Artifacts.Debugger ~CV~RF
-      - copy aif32.DisFile Artifacts.DisFile ~CV~RF
+      # Build modules (RAM)
+      - echo
+      - echo *** Build the RAM module (32-bit) ***
+      - amu -f MakefileModule ram
 
-      - echo *** Load the module to check that it works
+      #- echo
+      #- echo *** Build the RAM module (26-bit) ***
+      #- amu -f MakefileModule ram BUILD26=1 BUILD32=
+
+      # Build modules for ROM
+      - echo
+      - echo *** Build the ROM module (32-bit) ***
+      - amu -f MakefileModule rom
+
+      #- echo
+      #- echo *** Build the ROM module (26-bit) ***
+      #- amu -f MakefileModule rom BUILD26=1 BUILD32=
+
+      # Tests - loading to check that it starts up
+      - echo
+      - echo *** Load the module ***
       - RMLoad rm32.Debugger
 
       - echo *** Exercise *Memory
@@ -62,7 +81,33 @@ jobs:
       - echo *** Exercise *DumpI decoding 64bit code
       - DumpI hello_world64 6
 
+      - echo *** Kill the module ***
+      - RMKill Debugger
+
       - echo *** Simple smoketests complete
+      - echo
+
+      # Construct the artifacts to release
+      - echo *** Copy artifacts ***
+      - cdir Artifacts
+      - copy aif32.DisFile Artifacts.DisFile ~CVR
+      - copy rm32 Artifacts.* ~CVR
+      #- copy rm Artifacts.* ~CVR
+      - copy aof32 Artifacts.* ~CVR
+      #- copy aof Artifacts.* ~CVR
+      - IfThere <Exports$Dir>.C.h.Debugger Then cdir Artifacts.Lib
+      - IfThere <Exports$Dir>.C.h.Debugger Then cdir Artifacts.Lib.h
+      - IfThere <Exports$Dir>.C.h.Debugger Then copy <Exports$Dir>.C.h.Debugger Artifacts.Lib.h.Debugger ~CV
+      - IfThere <Exports$Dir>.Lib.Debugger Then cdir Artifacts.Lib
+      - IfThere <Exports$Dir>.Lib.Debugger Then copy <Exports$Dir>.Lib.Debugger Artifacts.Lib.Debugger ~CVR
+      # Remove the directory if it was empty
+      - X remove <Exports$Dir>.Lib.Debugger
+      - X remove <Exports$Dir>.Lib
+      - IfThere LICENSE Then copy LICENSE Artifacts.* ~CV
+
+      # Done!
+      - echo
+      - echo *** SUCCESS ***
 
     # Outputs from the build are defined in artifacts
     # These are a list of artifacts to report directories or files.
